@@ -30,6 +30,7 @@ Stack: Next.js + TypeScript + Tailwind CSS v4 + Supabase + @telegram-apps/sdk-re
    - Предложить конкретное следующее действие
 
 **Правила работы с документацией:**
+
 - После любых изменений — обновить соответствующий doc-файл
 - Завершил шаг → обновить статус в `docs/roadmap.md` и `docs/INDEX.md`
 - Начали новую фичу → создать файл в `docs/features/`
@@ -98,18 +99,18 @@ Telegram Mini App открывается **только в мобильном к
 
 ```typescript
 // Доступные хуки:
-import { useLaunchParams, useRawInitData, useSignal } from '@tma.js/sdk-react'
+import { useLaunchParams, useRawInitData, useSignal } from "@tma.js/sdk-react";
 ```
 
 ### Получение пользователя из initData
 
 ```typescript
-'use client'
-import { useLaunchParams } from '@tma.js/sdk-react'
+"use client";
+import { useLaunchParams } from "@tma.js/sdk-react";
 
 export function useCurrentUser() {
-  const launchParams = useLaunchParams()
-  return launchParams?.initData?.user ?? null
+  const launchParams = useLaunchParams();
+  return launchParams?.initData?.user ?? null;
 }
 ```
 
@@ -117,11 +118,11 @@ export function useCurrentUser() {
 
 ```typescript
 // lib/telegram/validate.ts
-import { validate, parse } from '@telegram-apps/init-data-node'
+import { validate, parse } from "@telegram-apps/init-data-node";
 
 export function validateTelegramInitData(initDataRaw: string) {
-  validate(initDataRaw, process.env.TELEGRAM_BOT_TOKEN!)
-  return parse(initDataRaw)
+  validate(initDataRaw, process.env.TELEGRAM_BOT_TOKEN!);
+  return parse(initDataRaw);
 }
 ```
 
@@ -129,7 +130,7 @@ export function validateTelegramInitData(initDataRaw: string) {
 
 ```typescript
 // Подписка на тему в layout или provider
-import { useThemeParams } from '@tma.js/sdk-react'
+import { useThemeParams } from "@tma.js/sdk-react";
 
 // CSS переменные Telegram доступны напрямую:
 // var(--tg-theme-bg-color)
@@ -142,7 +143,7 @@ import { useThemeParams } from '@tma.js/sdk-react'
 
 ```typescript
 // Всегда использовать viewport height из Telegram SDK, не 100vh
-import { useViewport } from '@tma.js/sdk-react'
+import { useViewport } from "@tma.js/sdk-react";
 
 // В CSS:
 // height: var(--tg-viewport-stable-height)
@@ -151,20 +152,20 @@ import { useViewport } from '@tma.js/sdk-react'
 ### Back Button
 
 ```typescript
-'use client'
-import { useBackButton } from '@tma.js/sdk-react'
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+"use client";
+import { useBackButton } from "@tma.js/sdk-react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export function useBackNavigation() {
-  const backButton = useBackButton()
-  const router = useRouter()
+  const backButton = useBackButton();
+  const router = useRouter();
 
   useEffect(() => {
-    backButton.show()
-    backButton.on('click', () => router.back())
-    return () => backButton.hide()
-  }, [backButton, router])
+    backButton.show();
+    backButton.on("click", () => router.back());
+    return () => backButton.hide();
+  }, [backButton, router]);
 }
 ```
 
@@ -197,7 +198,7 @@ const TrackCard = (props: any) => { ... }
 ### Imports order
 
 1. React / Next.js
-2. Сторонние библиотеки (включая @telegram-apps/*)
+2. Сторонние библиотеки (включая @telegram-apps/\*)
 3. Internal components (`@/components/...`)
 4. Internal lib/hooks/types (`@/lib/...`, `@/hooks/...`, `@/types/...`)
 5. Styles
@@ -290,12 +291,12 @@ export const createClient = async () => { ... }
 ```typescript
 // ✅ Всегда типизировать запросы
 const { data, error } = await supabase
-  .from('tracks')
-  .select('id, title, artist, cover_url, duration')
-  .eq('is_published', true)
-  .order('created_at', { ascending: false })
+  .from("tracks")
+  .select("id, title, artist, cover_url, duration")
+  .eq("is_published", true)
+  .order("created_at", { ascending: false });
 
-if (error) throw new Error(error.message)
+if (error) throw new Error(error.message);
 ```
 
 ---
@@ -309,6 +310,7 @@ if (error) throw new Error(error.message)
 - Для генерации TypeScript типов из схемы
 
 **Workflow:**
+
 1. MCP → список таблиц и колонок
 2. Не придумывать имена колонок — всегда проверять через MCP
 3. `supabase gen types` для TypeScript типов
@@ -369,19 +371,19 @@ NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=
 
 ## Skills Reference
 
-| Task                                    | Skill            |
-| --------------------------------------- | ---------------- |
-| Любой UI компонент, страница            | `frontend-design` |
-| Word document export                    | `docx`           |
-| PDF generation                          | `pdf`            |
-| Excel / spreadsheet                     | `xlsx`           |
-| Anthropic API в приложении              | `product-self-knowledge` |
+| Task                         | Skill                    |
+| ---------------------------- | ------------------------ |
+| Любой UI компонент, страница | `frontend-design`        |
+| Word document export         | `docx`                   |
+| PDF generation               | `pdf`                    |
+| Excel / spreadsheet          | `xlsx`                   |
+| Anthropic API в приложении   | `product-self-knowledge` |
 
 **Правило**: Всегда читать соответствующий skill перед началом задачи.
 
 ---
 
-## What Claude Should NOT Do
+## What Claude Should NOT Do /
 
 - ❌ Использовать тип `any`
 - ❌ Использовать generic шрифты (Inter, Roboto, Arial) как основной
