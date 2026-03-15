@@ -82,7 +82,7 @@ export function CreateRequestForm() {
 
   return (
     <div
-      className="flex flex-col min-h-screen bg-bg px-5 pt-6 pb-8"
+      className="flex flex-col bg-bg px-5 pt-6 pb-28"
       style={{ minHeight: 'var(--tg-viewport-stable-height, 100vh)' }}
     >
       {/* Header */}
@@ -117,7 +117,7 @@ export function CreateRequestForm() {
       </div>
 
       {/* Step content */}
-      <div className="flex-1">
+      <div>
         {/* Step 1: Description */}
         {step === 1 && (
           <div>
@@ -131,7 +131,6 @@ export function CreateRequestForm() {
               placeholder="Например: Хочу записать свой первый EP, нужна помощь с сведением 3 треков..."
               className="w-full h-40 bg-bg-secondary border border-border rounded-2xl px-4 py-3 text-text placeholder:text-muted resize-none outline-none focus:border-accent-from/50 transition-colors"
               style={{ fontSize: '16px' }}
-              autoFocus
             />
             <div className="flex justify-end mt-2">
               <span className={cn('text-xs', form.description.length >= 10 ? 'text-muted' : 'text-red-400/70')}>
@@ -287,8 +286,11 @@ export function CreateRequestForm() {
         )}
       </div>
 
-      {/* Bottom action */}
-      <div className="mt-6">
+      {/* Bottom action — fixed to avoid keyboard overlap */}
+      <div
+        className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4"
+        style={{ background: 'linear-gradient(to top, var(--color-bg) 60%, transparent)' }}
+      >
         {step < TOTAL_STEPS ? (
           <button
             onClick={handleNext}

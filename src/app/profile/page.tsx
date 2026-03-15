@@ -16,12 +16,23 @@ function ProfileContent() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // User name edit state
+  const [editingName, setEditingName] = useState(false)
+  const [draftFirstName, setDraftFirstName] = useState('')
+  const [draftLastName, setDraftLastName] = useState('')
+  const [isSavingName, setIsSavingName] = useState(false)
+
   if (!user) return null
 
   const role = user.role
   const isBoth = role === 'both'
   const isUserOnly = role === 'user'
   const isExpertOnly = role === 'expert'
+
+  // Show expert profile edit only when in expert mode
+  const showExpertCard = isExpertOnly || (isBoth && currentMode === 'expert')
+  // Show user profile actions when in user mode
+  const showUserActions = isUserOnly || (isBoth && currentMode === 'user')
 
   async function upgradeRole(newRole: 'both') {
     if (!initDataRaw) return
@@ -44,8 +55,6 @@ function ProfileContent() {
   }
 
   async function handleAddExpert() {
-    // Если профиль эксперта уже есть — просто обновляем роль
-    // Если нет — идём на setup (роль обновится после сохранения профиля)
     if (!initDataRaw) return
     const profileRes = await fetch('/api/expert/profile', {
       headers: { Authorization: `tma ${initDataRaw}` },
@@ -54,8 +63,6 @@ function ProfileContent() {
       await upgradeRole('both')
       setCurrentMode('expert')
     } else {
-      // Нет профиля — отправляем на setup
-      // После setup флоу сам обновит роль на 'both'
       router.push('/expert/profile/setup?upgrade=true')
     }
   }
@@ -63,6 +70,39 @@ function ProfileContent() {
   async function handleAddUser() {
     await upgradeRole('both')
     setCurrentMode('user')
+  }
+
+  function startEditName() {
+    setDraftFirstName(user.first_name ?? '')
+    setDraftLastName(user.last_name ?? '')
+    setEditingName(true)
+  }
+
+  async function saveName() {
+    if (!initDataRaw || !draftFirstName.trim()) return
+    setIsSavingName(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `tma ${initDataRaw}`,
+        },
+        body: JSON.stringify({
+          first_name: draftFirstName.trim(),
+          last_name: draftLastName.trim() || null,
+        }),
+      })
+      if (!res.ok) throw new Error('Ошибка сохранения')
+      const data = await res.json() as { user: typeof user }
+      if (data.user) setUser(data.user)
+      setEditingName(false)
+    } catch {
+      setError('Не удалось сохранить имя. Попробуйте снова.')
+    } finally {
+      setIsSavingName(false)
+    }
   }
 
   const displayName = [user.first_name, user.last_name].filter(Boolean).join(' ')
@@ -84,7 +124,7 @@ function ProfileContent() {
         {/* Шапка профиля */}
         <div className="flex items-center gap-4">
           <div
-            className="relative w-16 h-16 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
+            className="relative w-16 h-16 rounded-full overflow-hidden flex items-center justify-center shrink-0"
             style={{ background: 'linear-gradient(135deg, #4400ff, #3901d2)' }}
           >
             {user.photo_url ? (
@@ -95,8 +135,8 @@ function ProfileContent() {
               </span>
             )}
           </div>
-          <div>
-            <h1 className="text-white text-xl font-semibold">{displayName}</h1>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-white text-xl font-semibold truncate">{displayName}</h1>
             {user.username && (
               <p className="text-muted text-sm">@{user.username}</p>
             )}
@@ -148,8 +188,62 @@ function ProfileContent() {
 
         {/* Действия */}
         <div className="flex flex-col gap-3">
-          {/* Редактировать профиль эксперта */}
-          {(isExpertOnly || isBoth) && (
+          {/* Редактировать имя пользователя */}
+          {showUserActions && !editingName && (
+            <ActionCard
+              icon="✏️"
+              title="Мой профиль"
+              subtitle="Изменить имя"
+              onClick={startEditName}
+            />
+          )}
+
+          {/* Inline редактирование имени */}
+          {editingName && (
+            <div
+              className="rounded-2xl p-4 flex flex-col gap-3"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <p className="text-xs text-muted font-medium uppercase tracking-wider">Изменить имя</p>
+              <div className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  value={draftFirstName}
+                  onChange={(e) => setDraftFirstName(e.target.value)}
+                  placeholder="Имя"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 text-white placeholder-muted outline-none border border-white/10 focus:border-accent-from/50 transition-colors"
+                  style={{ fontSize: '16px' }}
+                />
+                <input
+                  type="text"
+                  value={draftLastName}
+                  onChange={(e) => setDraftLastName(e.target.value)}
+                  placeholder="Фамилия (необязательно)"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 text-white placeholder-muted outline-none border border-white/10 focus:border-accent-from/50 transition-colors"
+                  style={{ fontSize: '16px' }}
+                />
+              </div>
+              <div className="flex gap-3 mt-1">
+                <button
+                  onClick={saveName}
+                  disabled={isSavingName || !draftFirstName.trim()}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-opacity"
+                  style={{ background: 'linear-gradient(135deg, #4400ff 0%, #3901d2 100%)' }}
+                >
+                  {isSavingName ? 'Сохраняем...' : 'Сохранить'}
+                </button>
+                <button
+                  onClick={() => setEditingName(false)}
+                  className="px-4 py-2.5 rounded-xl text-sm text-muted bg-white/5"
+                >
+                  Отмена
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Редактировать профиль эксперта — только в режиме эксперта */}
+          {showExpertCard && (
             <ActionCard
               icon="✏️"
               title="Профиль эксперта"

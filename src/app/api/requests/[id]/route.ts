@@ -106,10 +106,12 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
   }
 
-  const { description, budget, publish } = body as {
+  const { description, budget, publish, category_id, subcategory_id } = body as {
     description?: unknown
     budget?: unknown
     publish?: unknown
+    category_id?: unknown
+    subcategory_id?: unknown
   }
 
   const updates: Record<string, unknown> = {
@@ -126,6 +128,21 @@ export async function PATCH(
     updates.budget = null
   }
 
+  if (typeof category_id === 'string' && category_id) {
+    updates.category_id = category_id
+    // Reset subcategory when category changes (unless a new one is provided)
+    updates.subcategory_id = null
+  } else if (category_id === null) {
+    updates.category_id = null
+    updates.subcategory_id = null
+  }
+
+  if (typeof subcategory_id === 'string' && subcategory_id) {
+    updates.subcategory_id = subcategory_id
+  } else if (subcategory_id === null) {
+    updates.subcategory_id = null
+  }
+
   if (publish === true) {
     updates.status = 'published'
     updates.is_active = true
@@ -137,7 +154,11 @@ export async function PATCH(
     .update(updates)
     .eq('id', id)
     .eq('user_id', dbUser.id)
-    .select('id, description, status, is_active, budget, expires_at')
+    .select(`
+      id, description, status, is_active, budget, expires_at,
+      category:categories!requests_category_id_fkey(id, name),
+      subcategory:categories!requests_subcategory_id_fkey(id, name)
+    `)
     .single()
 
   if (error) {

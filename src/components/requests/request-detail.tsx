@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useRawInitData } from '@tma.js/sdk-react'
 import { cn } from '@/lib/utils'
+import { useCategories } from '@/hooks/use-categories'
 import type { Request, Category } from '@/types'
 
 type RequestWithCategories = Request & {
@@ -34,6 +35,7 @@ interface RequestDetailProps {
 export function RequestDetail({ requestId }: RequestDetailProps) {
   const router = useRouter()
   const initDataRaw = useRawInitData()
+  const { topLevel, subCategories, isLoading: categoriesLoading } = useCategories()
 
   const [request, setRequest] = useState<RequestWithCategories | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -43,6 +45,9 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
   const [draftDescription, setDraftDescription] = useState('')
   const [editingBudget, setEditingBudget] = useState(false)
   const [draftBudget, setDraftBudget] = useState('')
+  const [editingCategory, setEditingCategory] = useState(false)
+  const [draftCategoryId, setDraftCategoryId] = useState('')
+  const [draftSubcategoryId, setDraftSubcategoryId] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
@@ -90,6 +95,20 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
     await saveField({ publish: true })
   }
 
+  function startEditCategory() {
+    setDraftCategoryId(request?.category?.id ?? '')
+    setDraftSubcategoryId(request?.subcategory?.id ?? '')
+    setEditingCategory(true)
+  }
+
+  async function saveCategory() {
+    await saveField({
+      category_id: draftCategoryId || null,
+      subcategory_id: draftSubcategoryId || null,
+    })
+    setEditingCategory(false)
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-bg px-5 pt-6 pb-8">
@@ -115,6 +134,7 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
   const statusColor = STATUS_COLORS[request.status] ?? 'text-muted'
   const isExpired = request.expires_at ? new Date(request.expires_at) < new Date() : false
   const canEdit = request.status === 'draft' || request.status === 'published'
+  const draftSubcats = draftCategoryId ? subCategories(draftCategoryId) : []
 
   return (
     <div
@@ -186,21 +206,120 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
         </div>
 
         {/* Category */}
-        {(request.category || request.subcategory) && (
-          <div className="bg-bg-secondary border border-border rounded-2xl p-4">
-            <p className="text-muted text-xs font-medium uppercase tracking-wider mb-2">Категория</p>
-            <div className="flex items-center gap-2 flex-wrap">
-              {request.category && (
-                <span className="text-sm text-text bg-white/5 px-3 py-1 rounded-full">
-                  {request.category.name}
-                </span>
+        <div className="bg-bg-secondary border border-border rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-muted text-xs font-medium uppercase tracking-wider">Категория</p>
+            {canEdit && !editingCategory && (
+              <button
+                onClick={startEditCategory}
+                className="text-xs text-accent-from active:opacity-70"
+              >
+                {request.category ? 'Изменить' : 'Добавить'}
+              </button>
+            )}
+          </div>
+
+          {editingCategory ? (
+            <div className="flex flex-col gap-4 mt-2">
+              {categoriesLoading ? (
+                <div className="flex flex-col gap-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-10 rounded-xl bg-white/5 animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-2">
+                    {topLevel.map((cat) => (
+                      <button
+                        key={cat.id}
+                        onClick={() => {
+                          setDraftCategoryId(cat.id)
+                          setDraftSubcategoryId('')
+                        }}
+                        className={cn(
+                          'w-full text-left px-3 py-2.5 rounded-xl border text-sm font-medium transition-all',
+                          draftCategoryId === cat.id
+                            ? 'border-accent-from/50 text-text'
+                            : 'border-border text-text-secondary bg-white/3'
+                        )}
+                        style={
+                          draftCategoryId === cat.id
+                            ? { background: 'linear-gradient(162deg, rgba(68,0,255,0.15) 18%, rgba(57,1,210,0.15) 103%)', borderColor: 'rgba(68,0,255,0.5)' }
+                            : {}
+                        }
+                      >
+                        {cat.name}
+                      </button>
+                    ))}
+                  </div>
+
+                  {draftSubcats.length > 0 && (
+                    <>
+                      <p className="text-text-secondary text-xs font-medium uppercase tracking-wider -mb-2">
+                        Подкатегория (необязательно)
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {draftSubcats.map((sub) => (
+                          <button
+                            key={sub.id}
+                            onClick={() =>
+                              setDraftSubcategoryId((prev) => prev === sub.id ? '' : sub.id)
+                            }
+                            className={cn(
+                              'px-3 py-1.5 rounded-full text-sm transition-all',
+                              draftSubcategoryId === sub.id
+                                ? 'text-white'
+                                : 'bg-white/8 text-text-secondary'
+                            )}
+                            style={
+                              draftSubcategoryId === sub.id
+                                ? { background: 'linear-gradient(162deg, #4400FF 18%, #3901D2 103%)' }
+                                : {}
+                            }
+                          >
+                            {sub.name}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
               )}
-              {request.subcategory && (
-                <span className="text-sm text-text-secondary">· {request.subcategory.name}</span>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={saveCategory}
+                  disabled={isSaving || !draftCategoryId}
+                  className="text-xs font-medium text-accent-from disabled:opacity-40"
+                >
+                  Сохранить
+                </button>
+                <button
+                  onClick={() => setEditingCategory(false)}
+                  className="text-xs text-muted"
+                >
+                  Отмена
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 flex-wrap">
+              {request.category ? (
+                <>
+                  <span className="text-sm text-text bg-white/5 px-3 py-1 rounded-full">
+                    {request.category.name}
+                  </span>
+                  {request.subcategory && (
+                    <span className="text-sm text-text-secondary">· {request.subcategory.name}</span>
+                  )}
+                </>
+              ) : (
+                <span className="text-muted text-sm">Не выбрана</span>
               )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Budget */}
         <div className="bg-bg-secondary border border-border rounded-2xl p-4">
