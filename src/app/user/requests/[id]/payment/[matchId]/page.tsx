@@ -41,7 +41,7 @@ function PaymentContent({ requestId, matchId }: { requestId: string; matchId: st
       backButton.show()
     } catch { /* noop */ }
 
-    const handleBack = () => router.push(`/user/requests/${requestId}`)
+    const handleBack = () => router.replace(`/user/requests/${requestId}`)
     try { backButton.onClick(handleBack) } catch { /* noop */ }
 
     return () => {
@@ -134,7 +134,7 @@ function PaymentContent({ requestId, matchId }: { requestId: string; matchId: st
             </button>
           )}
           <button
-            onClick={() => router.push(`/user/requests/${requestId}`)}
+            onClick={() => router.replace(`/user/requests/${requestId}`)}
             className="w-full py-4 rounded-[1000px] font-semibold text-text text-base border border-border"
           >
             Вернуться к запросу

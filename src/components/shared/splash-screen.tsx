@@ -31,10 +31,10 @@ export function SplashScreen() {
         {/* Title */}
         <div className="text-center">
           <h1 className="text-2xl font-semibold tracking-tight text-white">
-            Music Expert
+            Связи
           </h1>
           <p className="text-sm text-muted mt-1">
-            Найди своего эксперта
+            маркетплейс экспертных консультаций
           </p>
         </div>
 

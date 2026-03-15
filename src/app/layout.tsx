@@ -10,7 +10,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Music Expert App",
+  title: "Связи",
 };
 
 export default function RootLayout({

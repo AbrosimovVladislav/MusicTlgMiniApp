@@ -23,7 +23,7 @@ const REQUEST_STATUS_LABELS: Record<string, string> = {
   draft: 'Черновик',
   published: 'Опубликован',
   matched: 'Матч найден',
-  in_progress: 'В работе',
+  in_progress: 'Оплачен',
   completed: 'Завершён',
 }
 
@@ -131,7 +131,7 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
   }, [initDataRaw, requestId])
 
   useEffect(() => {
-    if (request?.status === 'published') {
+    if (request?.status === 'published' || request?.status === 'matched') {
       fetchExperts()
     }
   }, [request?.status, fetchExperts])
@@ -541,7 +541,7 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
       )}
 
       {/* Experts list — inline for published requests */}
-      {request.status === 'published' && (
+      {(request.status === 'published' || request.status === 'matched') && (
         <div className="mt-8">
           <h2 className="text-text font-semibold text-base mb-4">Подходящие эксперты</h2>
 
@@ -607,7 +607,15 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
                       </div>
 
                       {/* Status badge or like button */}
-                      {expert.match_status === 'expert_liked' ? (
+                      {expert.match_status === 'matched' && expert.match_id ? (
+                        <button
+                          onClick={() => router.push(`/user/requests/${requestId}/payment/${expert.match_id}`)}
+                          className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full text-white"
+                          style={{ background: 'linear-gradient(162deg, #4400FF 18%, #3901D2 103%)' }}
+                        >
+                          Оплатить
+                        </button>
+                      ) : expert.match_status === 'expert_liked' ? (
                         <div className="shrink-0 flex flex-col items-end gap-1.5">
                           <span className={cn('text-xs font-medium px-2 py-1 rounded-full', MATCH_STATUS_COLORS[expert.match_status])}>
                             {MATCH_STATUS_LABELS[expert.match_status]}

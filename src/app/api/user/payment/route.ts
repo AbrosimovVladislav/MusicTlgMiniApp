@@ -122,12 +122,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: matchUpdateError.message }, { status: 500 })
   }
 
-  // Update request to in_progress — guard: only if currently 'matched'
+  // Update request to in_progress — allow from published or matched
   await supabase
     .from('requests')
     .update({ status: 'in_progress', updated_at: new Date().toISOString() })
     .eq('id', match.request_id)
-    .eq('status', 'matched')
+    .in('status', ['published', 'matched'])
 
   return NextResponse.json({
     success: true,

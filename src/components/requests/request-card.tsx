@@ -8,7 +8,7 @@ const STATUS_LABELS: Record<string, string> = {
   draft: 'Черновик',
   published: 'Опубликован',
   matched: 'Матч',
-  in_progress: 'В работе',
+  in_progress: 'Оплачен',
   completed: 'Завершён',
 }
 
@@ -46,12 +46,6 @@ export function RequestCard({ request }: RequestCardProps) {
     : false
 
   const mm = request.matched_match
-
-  function handlePayClick(e: React.MouseEvent) {
-    e.stopPropagation()
-    if (!mm) return
-    router.push(`/user/requests/${request.id}/payment/${mm.match_id}`)
-  }
 
   function handleWriteClick(e: React.MouseEvent) {
     e.stopPropagation()
@@ -107,20 +101,11 @@ export function RequestCard({ request }: RequestCardProps) {
       {mm && (
         <div className="border-t border-border px-4 py-3">
           {mm.match_status === 'matched' && (
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
-                <span className="text-sm text-text-secondary truncate">
-                  Матч с <span className="text-text font-medium">{mm.expert_name}</span>
-                </span>
-              </div>
-              <button
-                onClick={handlePayClick}
-                className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full text-white"
-                style={{ background: 'linear-gradient(162deg, #4400FF 18%, #3901D2 103%)' }}
-              >
-                Оплатить
-              </button>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
+              <span className="text-sm text-text-secondary">
+                Есть матч — <span className="text-green-400 font-medium">зайдите в запрос</span>
+              </span>
             </div>
           )}
 
