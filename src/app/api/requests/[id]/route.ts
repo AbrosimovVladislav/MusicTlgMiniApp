@@ -1,0 +1,148 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { validateTelegramInitData } from '@/lib/telegram/validate'
+import { createClient } from '@/lib/supabase/server'
+
+function getInitDataRaw(request: NextRequest): string | null {
+  const auth = request.headers.get('Authorization')
+  if (auth?.startsWith('tma ')) return auth.slice(4)
+  return null
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const initDataRaw = getInitDataRaw(request)
+  if (!initDataRaw) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  let initData: ReturnType<typeof validateTelegramInitData>
+  try {
+    initData = validateTelegramInitData(initDataRaw)
+  } catch {
+    return NextResponse.json({ error: 'Invalid Telegram initData' }, { status: 401 })
+  }
+
+  const tgUser = initData.user
+  if (!tgUser) {
+    return NextResponse.json({ error: 'No user in initData' }, { status: 400 })
+  }
+
+  const { id } = await params
+  const supabase = await createClient()
+
+  const { data: dbUser, error: userError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('telegram_user_id', Number(tgUser.id))
+    .single()
+
+  if (userError || !dbUser) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  }
+
+  const { data: req, error } = await supabase
+    .from('requests')
+    .select(`
+      id, description, status, is_active, budget,
+      created_at, updated_at, expires_at,
+      category:categories!requests_category_id_fkey(id, name),
+      subcategory:categories!requests_subcategory_id_fkey(id, name)
+    `)
+    .eq('id', id)
+    .eq('user_id', dbUser.id)
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: 'Request not found' }, { status: 404 })
+  }
+
+  return NextResponse.json({ request: req })
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const initDataRaw = getInitDataRaw(request)
+  if (!initDataRaw) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  let initData: ReturnType<typeof validateTelegramInitData>
+  try {
+    initData = validateTelegramInitData(initDataRaw)
+  } catch {
+    return NextResponse.json({ error: 'Invalid Telegram initData' }, { status: 401 })
+  }
+
+  const tgUser = initData.user
+  if (!tgUser) {
+    return NextResponse.json({ error: 'No user in initData' }, { status: 400 })
+  }
+
+  const { id } = await params
+  const supabase = await createClient()
+
+  const { data: dbUser, error: userError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('telegram_user_id', Number(tgUser.id))
+    .single()
+
+  if (userError || !dbUser) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  }
+
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
+  }
+
+  const { description, budget, publish } = body as {
+    description?: unknown
+    budget?: unknown
+    publish?: unknown
+  }
+
+  const updates: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  }
+
+  if (typeof description === 'string' && description.trim().length >= 10) {
+    updates.description = description.trim()
+  }
+
+  if (typeof budget === 'number' && budget > 0) {
+    updates.budget = budget
+  } else if (budget === null) {
+    updates.budget = null
+  }
+
+  if (publish === true) {
+    updates.status = 'published'
+    updates.is_active = true
+    updates.expires_at = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+  }
+
+  const { data: updated, error } = await supabase
+    .from('requests')
+    .update(updates)
+    .eq('id', id)
+    .eq('user_id', dbUser.id)
+    .select('id, description, status, is_active, budget, expires_at')
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ request: updated })
+}

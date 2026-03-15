@@ -48,7 +48,7 @@ export default function RolePage() {
       if (selected === 'user') {
         router.replace('/user/home')
       } else {
-        router.replace('/expert/home')
+        router.replace('/expert/profile/setup')
       }
     } catch {
       setIsPending(false)
