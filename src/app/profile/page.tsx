@@ -154,7 +154,7 @@ function ProfileContent() {
               icon="✏️"
               title="Профиль эксперта"
               subtitle="Редактировать описание, категории, цену"
-              onClick={() => router.push('/expert/profile/setup')}
+              onClick={() => router.push('/expert/profile/edit')}
             />
           )}
 
