@@ -58,7 +58,44 @@ export async function GET(
     return NextResponse.json({ error: 'Request not found' }, { status: 404 })
   }
 
-  return NextResponse.json({ request: req })
+  // Fetch paid match for in_progress requests
+  let paid_match: {
+    match_id: string
+    expert_name: string
+    telegram_username: string | null
+  } | null = null
+
+  if (req.status === 'in_progress') {
+    const { data: paidMatch } = await supabase
+      .from('matches')
+      .select('id, expert_id')
+      .eq('request_id', id)
+      .eq('status', 'paid')
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (paidMatch) {
+      const { data: profile } = await supabase
+        .from('expert_profiles')
+        .select('telegram_username, display_first_name, display_last_name')
+        .eq('id', paidMatch.expert_id)
+        .single()
+
+      if (profile) {
+        paid_match = {
+          match_id: paidMatch.id,
+          expert_name:
+            [profile.display_first_name, profile.display_last_name]
+              .filter(Boolean)
+              .join(' ') || 'Эксперт',
+          telegram_username: profile.telegram_username,
+        }
+      }
+    }
+  }
+
+  return NextResponse.json({ request: { ...req, paid_match } })
 }
 
 export async function PATCH(

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateTelegramInitData } from '@/lib/telegram/validate'
 import { createClient } from '@/lib/supabase/server'
 import type { TablesInsert } from '@/types/database.types'
+import type { MatchedMatchData } from '@/types'
 
 function getInitDataRaw(request: NextRequest): string | null {
   const auth = request.headers.get('Authorization')
@@ -54,23 +55,89 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // Подсчёт откликов (expert_liked / matched / paid) для каждого запроса
+  // Response count + matched_match per request
   const requestIds = (requests ?? []).map((r) => r.id)
-  let responseCountMap: Record<string, number> = {}
+  const responseCountMap: Record<string, number> = {}
+  const matchedMatchMap: Record<string, MatchedMatchData> = {}
+
   if (requestIds.length > 0) {
-    const { data: matchCounts } = await supabase
+    const { data: allMatches } = await supabase
       .from('matches')
-      .select('request_id, status')
+      .select('id, request_id, expert_id, status, created_at')
       .in('request_id', requestIds)
       .in('status', ['expert_liked', 'matched', 'paid'])
-    for (const m of matchCounts ?? []) {
+      .order('created_at', { ascending: true })
+
+    for (const m of allMatches ?? []) {
       responseCountMap[m.request_id] = (responseCountMap[m.request_id] ?? 0) + 1
+    }
+
+    const relevantMatches = (allMatches ?? []).filter(
+      (m) => m.status === 'matched' || m.status === 'paid'
+    )
+
+    if (relevantMatches.length > 0) {
+      const expertIds = [...new Set(relevantMatches.map((m) => m.expert_id))]
+
+      const { data: profiles } = await supabase
+        .from('expert_profiles')
+        .select('id, display_first_name, display_last_name, consultation_price, telegram_username')
+        .in('id', expertIds)
+
+      const { data: profilesWithPhoto } = await supabase
+        .from('expert_profiles')
+        .select('id, users!expert_profiles_user_id_fkey(photo_url)')
+        .in('id', expertIds)
+
+      const profileMap: Record<string, {
+        display_first_name: string | null
+        display_last_name: string | null
+        consultation_price: number | null
+        telegram_username: string | null
+      }> = {}
+      for (const p of profiles ?? []) {
+        profileMap[p.id] = p
+      }
+
+      const photoMap: Record<string, string | null> = {}
+      for (const p of profilesWithPhoto ?? []) {
+        const userRow = p.users as { photo_url: string | null } | null
+        photoMap[p.id] = userRow?.photo_url ?? null
+      }
+
+      // Per request: priority paid > matched (within same status: first by created_at, already sorted asc)
+      for (const reqId of requestIds) {
+        const reqMatches = relevantMatches.filter((m) => m.request_id === reqId)
+        if (reqMatches.length === 0) continue
+
+        const best =
+          reqMatches.find((m) => m.status === 'paid') ??
+          reqMatches.find((m) => m.status === 'matched')
+
+        if (!best) continue
+
+        const prof = profileMap[best.expert_id]
+        if (!prof) continue
+
+        const expertName =
+          [prof.display_first_name, prof.display_last_name].filter(Boolean).join(' ') || 'Эксперт'
+
+        matchedMatchMap[reqId] = {
+          match_id: best.id,
+          match_status: best.status as 'matched' | 'paid',
+          expert_name: expertName,
+          expert_photo: photoMap[best.expert_id] ?? null,
+          consultation_price: prof.consultation_price,
+          telegram_username: best.status === 'paid' ? prof.telegram_username : null,
+        }
+      }
     }
   }
 
   const requestsWithCounts = (requests ?? []).map((r) => ({
     ...r,
     response_count: responseCountMap[r.id] ?? 0,
+    matched_match: matchedMatchMap[r.id] ?? null,
   }))
 
   return NextResponse.json({ requests: requestsWithCounts })

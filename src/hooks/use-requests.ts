@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRawInitData } from '@tma.js/sdk-react'
-import type { Request, Category } from '@/types'
+import type { Request, Category, MatchedMatchData } from '@/types'
 
-type RequestWithCategories = Request & {
+export type RequestWithCategories = Request & {
   category: Pick<Category, 'id' | 'name'> | null
   subcategory: Pick<Category, 'id' | 'name'> | null
   response_count: number
+  matched_match: MatchedMatchData | null
 }
 
 interface UseRequestsResult {

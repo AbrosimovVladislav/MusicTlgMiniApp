@@ -10,3 +10,12 @@ export type ExpertCategory = Tables<'expert_categories'>
 export type UserRole = Enums<'user_role'>
 export type RequestStatus = Enums<'request_status'>
 export type MatchStatus = Enums<'match_status'>
+
+export type MatchedMatchData = {
+  match_id: string
+  match_status: 'matched' | 'paid'
+  expert_name: string
+  expert_photo: string | null
+  consultation_price: number | null
+  telegram_username: string | null
+}

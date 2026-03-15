@@ -12,6 +12,11 @@ import type { ExpertCardData } from '@/app/api/user/experts/route'
 type RequestWithCategories = Request & {
   category: Pick<Category, 'id' | 'name'> | null
   subcategory: Pick<Category, 'id' | 'name'> | null
+  paid_match: {
+    match_id: string
+    expert_name: string
+    telegram_username: string | null
+  } | null
 }
 
 const REQUEST_STATUS_LABELS: Record<string, string> = {
@@ -49,6 +54,17 @@ const MATCH_STATUS_ORDER: Record<string, number> = {
   paid: 1,
   expert_liked: 2,
   user_liked: 3,
+}
+
+function openTelegramLink(username: string) {
+  const url = `https://t.me/${username}`
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tg = typeof window !== 'undefined' ? (window as any).Telegram?.WebApp : null
+  if (tg?.openLink) {
+    tg.openLink(url)
+  } else {
+    window.open(url, '_blank')
+  }
 }
 
 interface RequestDetailProps {
@@ -491,6 +507,36 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
           >
             {isSaving ? 'Публикация...' : 'Опубликовать'}
           </button>
+        </div>
+      )}
+
+      {/* Ваш эксперт — shown when request is in_progress */}
+      {request.status === 'in_progress' && request.paid_match && (
+        <div className="mt-8">
+          <h2 className="text-text-secondary text-xs font-medium uppercase tracking-wider mb-3">
+            Ваш эксперт
+          </h2>
+          <div className="bg-bg-secondary border border-border rounded-2xl p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-text font-semibold truncate">{request.paid_match.expert_name}</p>
+                {request.paid_match.telegram_username ? (
+                  <p className="text-accent-from text-sm">@{request.paid_match.telegram_username}</p>
+                ) : (
+                  <p className="text-text-secondary text-sm">Контакт будет передан через бота</p>
+                )}
+              </div>
+              {request.paid_match.telegram_username && (
+                <button
+                  onClick={() => openTelegramLink(request.paid_match!.telegram_username!)}
+                  className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full text-white"
+                  style={{ background: 'linear-gradient(162deg, #4400FF 18%, #3901D2 103%)' }}
+                >
+                  Написать
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
