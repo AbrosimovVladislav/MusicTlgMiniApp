@@ -7,6 +7,7 @@ import type { Request, Category } from '@/types'
 type RequestWithCategories = Request & {
   category: Pick<Category, 'id' | 'name'> | null
   subcategory: Pick<Category, 'id' | 'name'> | null
+  response_count: number
 }
 
 interface UseRequestsResult {

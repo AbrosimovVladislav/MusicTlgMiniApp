@@ -54,7 +54,26 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ requests })
+  // Подсчёт откликов (expert_liked / matched / paid) для каждого запроса
+  const requestIds = (requests ?? []).map((r) => r.id)
+  let responseCountMap: Record<string, number> = {}
+  if (requestIds.length > 0) {
+    const { data: matchCounts } = await supabase
+      .from('matches')
+      .select('request_id, status')
+      .in('request_id', requestIds)
+      .in('status', ['expert_liked', 'matched', 'paid'])
+    for (const m of matchCounts ?? []) {
+      responseCountMap[m.request_id] = (responseCountMap[m.request_id] ?? 0) + 1
+    }
+  }
+
+  const requestsWithCounts = (requests ?? []).map((r) => ({
+    ...r,
+    response_count: responseCountMap[r.id] ?? 0,
+  }))
+
+  return NextResponse.json({ requests: requestsWithCounts })
 }
 
 export async function POST(request: NextRequest) {

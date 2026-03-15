@@ -224,14 +224,6 @@ function ExpertDetailContent({ expertId }: { expertId: string }) {
               )}>
                 {MATCH_STATUS_LABELS[expert.match_status]}
               </div>
-              {(expert.match_status === 'user_liked' || expert.match_status === 'matched') && (
-                <button
-                  onClick={() => router.push(`/user/requests/${requestId}/waiting`)}
-                  className="text-center text-xs text-accent-from underline"
-                >
-                  Посмотреть все лайки
-                </button>
-              )}
             </div>
           ) : (
             <button
