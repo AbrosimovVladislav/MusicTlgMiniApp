@@ -197,7 +197,24 @@ function ExpertDetailContent({ expertId }: { expertId: string }) {
         <div className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4"
           style={{ background: 'linear-gradient(to top, #0b002a 70%, transparent)' }}
         >
-          {expert.match_status ? (
+          {expert.match_status === 'expert_liked' ? (
+            <div className="flex flex-col gap-2">
+              <div className="w-full py-3 rounded-[1000px] font-medium text-sm text-center bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">
+                {MATCH_STATUS_LABELS[expert.match_status]}
+              </div>
+              <button
+                onClick={handleLike}
+                disabled={liking}
+                className={cn(
+                  'w-full py-4 rounded-[1000px] font-semibold text-white text-base transition-opacity',
+                  liking ? 'opacity-60' : 'active:opacity-80'
+                )}
+                style={{ background: 'linear-gradient(162deg, #4400FF 18%, #3901D2 103%)' }}
+              >
+                {liking ? 'Отправляю...' : 'Лайкнуть в ответ ♥'}
+              </button>
+            </div>
+          ) : expert.match_status ? (
             <div className="flex flex-col gap-2">
               <div className={cn(
                 'w-full py-4 rounded-[1000px] font-semibold text-base text-center',

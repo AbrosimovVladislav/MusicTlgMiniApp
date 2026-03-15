@@ -16,7 +16,7 @@ interface ExpertHomeData {
 function ExpertHomeContent() {
   const router = useRouter()
   const initDataRaw = useRawInitData()
-  const { user, expertName } = useAuthStore()
+  const { user } = useAuthStore()
 
   const [profileChecked, setProfileChecked] = useState(false)
   const [data, setData] = useState<ExpertHomeData | null>(null)
@@ -125,7 +125,7 @@ function ExpertHomeContent() {
       <div className="relative mb-8">
         <p className="text-text-secondary text-sm mb-1">Добро пожаловать,</p>
         <h1 className="text-white text-2xl font-semibold leading-tight">
-          {expertName?.first_name ?? user?.first_name ?? 'Эксперт'} 🎤
+          {user?.first_name ?? 'Эксперт'} 🎤
         </h1>
       </div>
 

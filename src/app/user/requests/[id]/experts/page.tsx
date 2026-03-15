@@ -200,7 +200,21 @@ function ExpertsList({ requestId }: { requestId: string }) {
                 </div>
 
                 {/* Match badge or Like button */}
-                {expert.match_status ? (
+                {expert.match_status === 'expert_liked' ? (
+                  <div className="shrink-0 flex flex-col items-end gap-1.5">
+                    <span className={cn('text-xs font-medium px-2 py-1 rounded-full', MATCH_STATUS_COLORS[expert.match_status])}>
+                      {MATCH_STATUS_LABELS[expert.match_status]}
+                    </span>
+                    <button
+                      onClick={() => handleLike(expert.id)}
+                      disabled={liking === expert.id}
+                      className="text-xs font-semibold px-3 py-1 rounded-full text-white active:opacity-70 disabled:opacity-60"
+                      style={{ background: 'linear-gradient(162deg, #4400FF 18%, #3901D2 103%)' }}
+                    >
+                      {liking === expert.id ? '...' : 'Лайкнуть ♥'}
+                    </button>
+                  </div>
+                ) : expert.match_status ? (
                   <span className={cn('shrink-0 text-xs font-medium px-2 py-1 rounded-full', MATCH_STATUS_COLORS[expert.match_status])}>
                     {MATCH_STATUS_LABELS[expert.match_status]}
                   </span>

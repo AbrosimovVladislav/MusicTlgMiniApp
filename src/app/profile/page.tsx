@@ -12,11 +12,10 @@ import { cn } from '@/lib/utils'
 function ProfileContent() {
   const router = useRouter()
   const initDataRaw = useRawInitData()
-  const { user, expertName, currentMode, setCurrentMode, setUser, setExpertName } = useAuthStore()
+  const { user, currentMode, setCurrentMode, setUser } = useAuthStore()
   const [isUpdating, setIsUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // User name edit state
   const [editingName, setEditingName] = useState(false)
   const [draftFirstName, setDraftFirstName] = useState('')
   const [draftLastName, setDraftLastName] = useState('')
@@ -28,18 +27,10 @@ function ProfileContent() {
   const isBoth = role === 'both'
   const isUserOnly = role === 'user'
   const isExpertOnly = role === 'expert'
-
-  const showExpertCard = isExpertOnly || (isBoth && currentMode === 'expert')
   const isExpertMode = isExpertOnly || (isBoth && currentMode === 'expert')
+  const isUserMode = isUserOnly || (isBoth && currentMode === 'user')
 
-  // Имя зависит от режима
-  const displayFirstName = isExpertMode
-    ? (expertName?.first_name ?? user.first_name)
-    : user.first_name
-  const displayLastName = isExpertMode
-    ? (expertName?.last_name ?? user.last_name)
-    : user.last_name
-  const displayName = [displayFirstName, displayLastName].filter(Boolean).join(' ')
+  const displayName = [user.first_name, user.last_name].filter(Boolean).join(' ')
 
   async function upgradeRole(newRole: 'both') {
     if (!initDataRaw) return
@@ -80,8 +71,8 @@ function ProfileContent() {
   }
 
   function startEditName() {
-    setDraftFirstName(displayFirstName)
-    setDraftLastName(displayLastName ?? '')
+    setDraftFirstName(user?.first_name ?? '')
+    setDraftLastName(user?.last_name ?? '')
     setEditingName(true)
   }
 
@@ -90,39 +81,20 @@ function ProfileContent() {
     setIsSavingName(true)
     setError(null)
     try {
-      if (isExpertMode) {
-        // Сохраняем имя эксперта в expert_profiles
-        const res = await fetch('/api/expert/profile', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `tma ${initDataRaw}`,
-          },
-          body: JSON.stringify({
-            display_first_name: draftFirstName.trim(),
-            display_last_name: draftLastName.trim() || null,
-          }),
-        })
-        if (!res.ok) throw new Error('Ошибка сохранения')
-        const data = await res.json() as { expert_name: { first_name: string; last_name: string | null } }
-        if (data.expert_name) setExpertName(data.expert_name)
-      } else {
-        // Сохраняем имя пользователя в users
-        const res = await fetch('/api/user/profile', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `tma ${initDataRaw}`,
-          },
-          body: JSON.stringify({
-            first_name: draftFirstName.trim(),
-            last_name: draftLastName.trim() || null,
-          }),
-        })
-        if (!res.ok) throw new Error('Ошибка сохранения')
-        const data = await res.json() as { user: typeof user }
-        if (data.user) setUser(data.user)
-      }
+      const res = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `tma ${initDataRaw}`,
+        },
+        body: JSON.stringify({
+          first_name: draftFirstName.trim(),
+          last_name: draftLastName.trim() || null,
+        }),
+      })
+      if (!res.ok) throw new Error('Ошибка сохранения')
+      const data = await res.json() as { user: typeof user }
+      if (data.user) setUser(data.user)
       setEditingName(false)
     } catch {
       setError('Не удалось сохранить имя. Попробуйте снова.')
@@ -155,7 +127,7 @@ function ProfileContent() {
               <Image src={user.photo_url} alt="Фото" fill className="object-cover" unoptimized />
             ) : (
               <span className="text-white text-xl font-bold">
-                {displayFirstName?.[0]?.toUpperCase() ?? '?'}
+                {user.first_name?.[0]?.toUpperCase() ?? '?'}
               </span>
             )}
           </div>
@@ -170,7 +142,7 @@ function ProfileContent() {
           </div>
         </div>
 
-        {/* Переключатель режима — только для role === 'both' */}
+        {/* Переключатель режима */}
         {isBoth && (
           <div
             className="rounded-2xl p-1 flex"
@@ -182,11 +154,7 @@ function ProfileContent() {
                 'flex-1 py-3 rounded-xl text-sm font-semibold transition-all duration-200',
                 currentMode === 'user' ? 'text-white' : 'text-muted'
               )}
-              style={
-                currentMode === 'user'
-                  ? { background: 'linear-gradient(135deg, #4400ff 0%, #3901d2 100%)' }
-                  : undefined
-              }
+              style={currentMode === 'user' ? { background: 'linear-gradient(135deg, #4400ff 0%, #3901d2 100%)' } : undefined}
             >
               👤 Слушатель
             </button>
@@ -196,27 +164,21 @@ function ProfileContent() {
                 'flex-1 py-3 rounded-xl text-sm font-semibold transition-all duration-200',
                 currentMode === 'expert' ? 'text-white' : 'text-muted'
               )}
-              style={
-                currentMode === 'expert'
-                  ? { background: 'linear-gradient(135deg, #4400ff 0%, #3901d2 100%)' }
-                  : undefined
-              }
+              style={currentMode === 'expert' ? { background: 'linear-gradient(135deg, #4400ff 0%, #3901d2 100%)' } : undefined}
             >
               🎤 Эксперт
             </button>
           </div>
         )}
 
-        {/* Ошибка */}
         {error && <p className="text-red-400 text-sm text-center">{error}</p>}
 
-        {/* Действия */}
         <div className="flex flex-col gap-3">
-          {/* Редактировать имя — доступно в обоих режимах */}
-          {!editingName && (
+          {/* Юзер-режим: изменить имя */}
+          {isUserMode && !editingName && (
             <ActionCard
               icon="✏️"
-              title={isExpertMode ? 'Имя эксперта' : 'Мой профиль'}
+              title="Мой профиль"
               subtitle="Изменить имя"
               onClick={startEditName}
             />
@@ -228,9 +190,7 @@ function ProfileContent() {
               className="rounded-2xl p-4 flex flex-col gap-3"
               style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
-              <p className="text-xs text-muted font-medium uppercase tracking-wider">
-                {isExpertMode ? 'Имя как эксперт' : 'Изменить имя'}
-              </p>
+              <p className="text-xs text-muted font-medium uppercase tracking-wider">Изменить имя</p>
               <div className="flex flex-col gap-2">
                 <input
                   type="text"
@@ -268,10 +228,10 @@ function ProfileContent() {
             </div>
           )}
 
-          {/* Редактировать профиль эксперта — только в режиме эксперта */}
-          {showExpertCard && (
+          {/* Эксперт-режим: редактировать профиль */}
+          {isExpertMode && (
             <ActionCard
-              icon="✏️"
+              icon="🎤"
               title="Профиль эксперта"
               subtitle="Редактировать описание, категории, цену"
               onClick={() => router.push('/expert/profile/edit')}
@@ -293,9 +253,7 @@ function ProfileContent() {
                 <span className="text-2xl">🎤</span>
                 <div>
                   <p className="text-white text-sm font-semibold">Стать экспертом</p>
-                  <p className="text-text-secondary text-xs mt-0.5">
-                    Заполните профиль и принимайте запросы
-                  </p>
+                  <p className="text-text-secondary text-xs mt-0.5">Заполните профиль и принимайте запросы</p>
                 </div>
                 <ChevronIcon className="ml-auto text-text-secondary" />
               </div>
@@ -317,9 +275,7 @@ function ProfileContent() {
                 <span className="text-2xl">👤</span>
                 <div>
                   <p className="text-white text-sm font-semibold">Добавить режим слушателя</p>
-                  <p className="text-text-secondary text-xs mt-0.5">
-                    Создавайте запросы и находите экспертов
-                  </p>
+                  <p className="text-text-secondary text-xs mt-0.5">Создавайте запросы и находите экспертов</p>
                 </div>
                 <ChevronIcon className="ml-auto text-text-secondary" />
               </div>
@@ -345,16 +301,8 @@ function ProfileContent() {
   )
 }
 
-function ActionCard({
-  icon,
-  title,
-  subtitle,
-  onClick,
-}: {
-  icon: string
-  title: string
-  subtitle: string
-  onClick: () => void
+function ActionCard({ icon, title, subtitle, onClick }: {
+  icon: string; title: string; subtitle: string; onClick: () => void
 }) {
   return (
     <button
@@ -385,17 +333,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 function ChevronIcon({ className }: { className?: string }) {
   return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
       <path d="M9 18l6-6-6-6" />
     </svg>
   )
