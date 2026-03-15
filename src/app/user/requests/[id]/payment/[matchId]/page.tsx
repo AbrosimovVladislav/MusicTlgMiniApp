@@ -225,7 +225,7 @@ function PaymentContent({ requestId, matchId, price }: { requestId: string; matc
                 Обработка...
               </>
             ) : (
-              {price != null ? `Оплатить ${price.toLocaleString('ru-RU')} ₽` : 'Оплатить'}
+              price != null ? `Оплатить ${price.toLocaleString('ru-RU')} ₽` : 'Оплатить'
             )}
           </button>
         )}
