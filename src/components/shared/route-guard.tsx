@@ -8,36 +8,53 @@ import type { UserRole } from '@/types'
 
 interface RouteGuardProps {
   children: React.ReactNode
-  /** Роль, которая имеет доступ. Если не указана — доступ только без роли (онбординг). */
+  /**
+   * Роль, для которой доступен маршрут.
+   * undefined + requireAuth=true — любой авторизованный пользователь (напр. /profile)
+   * undefined + requireAuth=false — только без роли (онбординг)
+   */
   allowedRole?: UserRole
+  requireAuth?: boolean
 }
 
-export function RouteGuard({ children, allowedRole }: RouteGuardProps) {
+export function RouteGuard({ children, allowedRole, requireAuth = false }: RouteGuardProps) {
   const router = useRouter()
-  const { isLoading, isAuthenticated, user } = useAuthStore()
+  const { isLoading, isAuthenticated, user, currentMode } = useAuthStore()
 
   useEffect(() => {
     if (isLoading) return
-
     if (!isAuthenticated) return // dev fallback
 
     const role = user?.role
 
+    // Страница для любого авторизованного (напр. /profile)
+    if (requireAuth && !allowedRole) {
+      if (!role) router.replace('/onboarding/role')
+      return
+    }
+
     if (allowedRole) {
-      // Защищённый роут — нужна конкретная роль
       if (!role) {
         router.replace('/onboarding/role')
-      } else if (role !== allowedRole) {
+        return
+      }
+
+      // Для роли 'both' — проверяем currentMode
+      const effectiveRole = role === 'both' ? currentMode : role
+
+      if (effectiveRole !== allowedRole) {
         // Не та роль — гоним на свой home
-        router.replace(role === 'user' ? '/user/home' : '/expert/home')
+        const homeRoute = currentMode === 'user' ? '/user/home' : '/expert/home'
+        router.replace(homeRoute)
       }
     } else {
-      // Онбординг-роут — если роль уже есть, редирект на home
+      // Онбординг-маршрут — если роль уже есть, уходим
       if (role) {
-        router.replace(role === 'user' ? '/user/home' : '/expert/home')
+        const homeRoute = currentMode === 'user' ? '/user/home' : '/expert/home'
+        router.replace(homeRoute)
       }
     }
-  }, [isLoading, isAuthenticated, user, allowedRole, router])
+  }, [isLoading, isAuthenticated, user, allowedRole, requireAuth, currentMode, router])
 
   if (isLoading) return <SplashScreen />
 

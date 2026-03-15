@@ -7,24 +7,28 @@ import { SplashScreen } from '@/components/shared/splash-screen'
 
 export default function RootPage() {
   const router = useRouter()
-  const { isLoading, isAuthenticated, user } = useAuthStore()
+  const { isLoading, isAuthenticated, user, currentMode } = useAuthStore()
 
   useEffect(() => {
     if (isLoading) return
+    if (!isAuthenticated) return
 
-    if (!isAuthenticated) {
-      // Dev fallback — в Telegram всегда будет auth
+    const role = user?.role
+
+    if (!role) {
+      router.replace('/onboarding/role')
       return
     }
 
-    if (!user?.role) {
-      router.replace('/onboarding/role')
-    } else if (user.role === 'user') {
+    // Определяем активный режим
+    const mode = role === 'both' ? currentMode : role
+
+    if (mode === 'user') {
       router.replace('/user/home')
     } else {
       router.replace('/expert/home')
     }
-  }, [isLoading, isAuthenticated, user, router])
+  }, [isLoading, isAuthenticated, user, currentMode, router])
 
   return <SplashScreen />
 }

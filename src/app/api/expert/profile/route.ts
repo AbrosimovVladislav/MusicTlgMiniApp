@@ -2,6 +2,70 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateTelegramInitData } from '@/lib/telegram/validate'
 import { createServiceClient } from '@/lib/supabase/service'
 
+function getInitDataRaw(request: NextRequest): string | null {
+  const auth = request.headers.get('Authorization')
+  if (auth?.startsWith('tma ')) return auth.slice(4)
+  return null
+}
+
+export async function GET(request: NextRequest) {
+  const initDataRaw = getInitDataRaw(request)
+  if (!initDataRaw) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  let initData: ReturnType<typeof validateTelegramInitData>
+  try {
+    initData = validateTelegramInitData(initDataRaw)
+  } catch {
+    return NextResponse.json({ error: 'Invalid Telegram initData' }, { status: 401 })
+  }
+
+  const tgUser = initData.user
+  if (!tgUser) {
+    return NextResponse.json({ error: 'No user in initData' }, { status: 400 })
+  }
+
+  const supabase = createServiceClient()
+
+  const { data: user, error: userError } = await supabase
+    .from('users')
+    .select('id, first_name, last_name, photo_url, username')
+    .eq('telegram_user_id', Number(tgUser.id))
+    .single()
+
+  if (userError || !user) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('expert_profiles')
+    .select('id, description, consultation_price, telegram_username, is_visible, created_at')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (profileError) {
+    return NextResponse.json({ error: profileError.message }, { status: 500 })
+  }
+
+  if (!profile) {
+    return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+  }
+
+  const { data: expertCategories } = await supabase
+    .from('expert_categories')
+    .select('category_id, categories(id, name, parent_id)')
+    .eq('expert_id', profile.id)
+
+  return NextResponse.json({
+    profile: {
+      ...profile,
+      user: { first_name: user.first_name, last_name: user.last_name, photo_url: user.photo_url, username: user.username },
+      categories: expertCategories?.map((ec) => ec.categories).filter(Boolean) ?? [],
+    },
+  })
+}
+
 export async function POST(request: NextRequest) {
   let body: unknown
   try {

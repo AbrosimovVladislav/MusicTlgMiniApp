@@ -274,7 +274,7 @@ export type Database = {
         | "matched"
         | "in_progress"
         | "completed"
-      user_role: "user" | "expert"
+      user_role: "user" | "expert" | "both"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -410,7 +410,7 @@ export const Constants = {
         "in_progress",
         "completed",
       ],
-      user_role: ["user", "expert"],
+      user_role: ["user", "expert", "both"],
     },
   },
 } as const

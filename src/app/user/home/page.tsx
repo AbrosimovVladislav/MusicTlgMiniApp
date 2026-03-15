@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { RouteGuard } from '@/components/shared/route-guard'
+import { BottomNav } from '@/components/shared/bottom-nav'
 import { RequestCard } from '@/components/requests/request-card'
 import { useRequests } from '@/hooks/use-requests'
 import { useAuthStore } from '@/lib/store/auth'
@@ -91,6 +92,8 @@ function UserHomeContent() {
           </div>
         </section>
       )}
+
+      <BottomNav />
     </main>
   )
 }

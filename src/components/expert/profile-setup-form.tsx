@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { useRawInitData } from '@tma.js/sdk-react'
 import { useAuthStore } from '@/lib/store/auth'
@@ -32,8 +32,10 @@ const STEP_TITLES = [
 
 export function ProfileSetupForm({ categories }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isUpgrade = searchParams.get('upgrade') === 'true'
   const initDataRaw = useRawInitData()
-  const { user } = useAuthStore()
+  const { user, setUser, setCurrentMode } = useAuthStore()
 
   const [step, setStep] = useState(1)
   const [isPending, setIsPending] = useState(false)
@@ -106,6 +108,20 @@ export function ProfileSetupForm({ categories }: Props) {
       if (!res.ok) {
         const data = (await res.json()) as { error: string }
         throw new Error(data.error ?? 'Не удалось сохранить профиль')
+      }
+
+      // Если это апгрейд с user → both, обновляем роль в БД
+      if (isUpgrade && initDataRaw) {
+        const roleRes = await fetch('/api/auth/role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initDataRaw, role: 'both' }),
+        })
+        if (roleRes.ok) {
+          const roleData = await roleRes.json() as { user: typeof user }
+          if (roleData.user) setUser(roleData.user)
+        }
+        setCurrentMode('expert')
       }
 
       router.replace('/expert/home')

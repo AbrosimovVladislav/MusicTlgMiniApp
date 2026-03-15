@@ -45,11 +45,11 @@
 
 | #   | Задача                                           | Статус | Фича-файл                                                  |
 | --- | ------------------------------------------------ | ------ | ---------------------------------------------------------- |
-| 2.1 | Многошаговая форма заполнения профиля            | ⬜      | `[features/expert-profile.md](features/expert-profile.md)` |
-| 2.2 | Фото из Telegram (дефолт) + возможность заменить | ⬜      | `[features/expert-profile.md](features/expert-profile.md)` |
-| 2.3 | Выбор категорий и подкатегорий                   | ⬜      | `[features/expert-profile.md](features/expert-profile.md)` |
-| 2.4 | Стоимость консультации                           | ⬜      | `[features/expert-profile.md](features/expert-profile.md)` |
-| 2.5 | Сохранение профиля в Supabase                    | ⬜      | `[features/expert-profile.md](features/expert-profile.md)` |
+| 2.1 | Многошаговая форма заполнения профиля            | ✅      | `[features/expert-profile.md](features/expert-profile.md)` |
+| 2.2 | Фото из Telegram (дефолт) + возможность заменить | ✅      | `[features/expert-profile.md](features/expert-profile.md)` |
+| 2.3 | Выбор категорий и подкатегорий                   | ✅      | `[features/expert-profile.md](features/expert-profile.md)` |
+| 2.4 | Стоимость консультации                           | ✅      | `[features/expert-profile.md](features/expert-profile.md)` |
+| 2.5 | Сохранение профиля в Supabase                    | ✅      | `[features/expert-profile.md](features/expert-profile.md)` |
 
 
 ---
@@ -93,12 +93,12 @@
 
 | #   | Задача                                                  | Статус | Фича-файл                                            |
 | --- | ------------------------------------------------------- | ------ | ---------------------------------------------------- |
-| 5.1 | Home эксперта — раздел «Запросы по моим категориям»     | ⬜      | `[features/expert-home.md](features/expert-home.md)` |
-| 5.2 | Home эксперта — раздел «Меня лайкнули»                  | ⬜      | `[features/expert-home.md](features/expert-home.md)` |
-| 5.3 | Детальная карточка запроса + кнопка «Откликнуться»      | ⬜      | `[features/expert-home.md](features/expert-home.md)` |
-| 5.4 | Сценарий A: эксперт откликается первым → `expert_liked` | ⬜      | `[features/matching.md](features/matching.md)`       |
-| 5.5 | Сценарий B: эксперт принимает лайк пользователя → матч  | ⬜      | `[features/matching.md](features/matching.md)`       |
-| 5.6 | Детектирование взаимного матча → статус `matched`       | ⬜      | `[features/matching.md](features/matching.md)`       |
+| 5.1 | Home эксперта — раздел «Запросы по моим категориям»     | ✅      | `[features/expert-profile.md](features/expert-profile.md)` |
+| 5.2 | Home эксперта — раздел «Меня лайкнули»                  | ✅      | `[features/expert-profile.md](features/expert-profile.md)` |
+| 5.3 | Детальная карточка запроса + кнопка «Откликнуться»      | ✅      | `[features/expert-profile.md](features/expert-profile.md)` |
+| 5.4 | Сценарий A: эксперт откликается первым → `expert_liked` | ✅      | `[features/expert-profile.md](features/expert-profile.md)` |
+| 5.5 | Сценарий B: эксперт принимает лайк пользователя → матч  | ✅      | `[features/expert-profile.md](features/expert-profile.md)` |
+| 5.6 | Детектирование взаимного матча → статус `matched`       | ✅      | `[features/expert-profile.md](features/expert-profile.md)` |
 
 
 ---
