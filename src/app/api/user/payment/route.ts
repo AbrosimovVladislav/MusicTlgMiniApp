@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
   // Get expert profile
   const { data: expertProfile, error: profileError } = await supabase
     .from('expert_profiles')
-    .select('telegram_username, display_first_name, display_last_name')
+    .select('telegram_username, display_first_name, display_last_name, users!expert_profiles_user_id_fkey(first_name, last_name)')
     .eq('id', match.expert_id)
     .single()
 
@@ -92,10 +92,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Expert profile not found' }, { status: 404 })
   }
 
+  const userRow = expertProfile.users as { first_name: string; last_name: string | null } | null
   const expertName =
-    [expertProfile.display_first_name, expertProfile.display_last_name]
-      .filter(Boolean)
-      .join(' ') || 'Эксперт'
+    [expertProfile.display_first_name, expertProfile.display_last_name].filter(Boolean).join(' ') ||
+    [userRow?.first_name, userRow?.last_name].filter(Boolean).join(' ') ||
+    'Эксперт'
 
   // Idempotency: already paid — return success without re-processing
   if (match.status === 'paid') {

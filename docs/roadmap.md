@@ -110,10 +110,10 @@
 
 | #   | Задача                                              | Статус | Фича-файл                                    |
 | --- | --------------------------------------------------- | ------ | -------------------------------------------- |
-| 6.1 | Экран матча — обе стороны видят друг друга          | ⬜      | `[features/payment.md](features/payment.md)` |
-| 6.2 | Моковый экран оплаты (заглушка)                     | ⬜      | `[features/payment.md](features/payment.md)` |
-| 6.3 | После оплаты → раскрытие Telegram username эксперта | ⬜      | `[features/payment.md](features/payment.md)` |
-| 6.4 | Статус запроса → `in_progress`                      | ⬜      | `[features/payment.md](features/payment.md)` |
+| 6.1 | Экран матча — обе стороны видят друг друга          | ✅      | `[features/payment.md](features/payment.md)` |
+| 6.2 | Моковый экран оплаты (заглушка)                     | ✅      | `[features/payment.md](features/payment.md)` |
+| 6.3 | После оплаты → раскрытие Telegram username эксперта | ✅      | `[features/payment.md](features/payment.md)` |
+| 6.4 | Статус запроса → `in_progress`                      | ✅      | `[features/payment.md](features/payment.md)` |
 
 
 ---

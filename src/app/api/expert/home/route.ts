@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
 
   const categoryIds = expertCategories?.map((ec) => ec.category_id) ?? []
 
-  // Раздел 1: запросы где пользователь лайкнул этого эксперта (user_liked)
+  // Раздел 1: все матчи эксперта (все статусы)
   const { data: likedMeMatches } = await supabase
     .from('matches')
     .select(`
@@ -92,8 +92,9 @@ export async function GET(request: NextRequest) {
       )
     `)
     .eq('expert_id', profile.id)
-    .eq('status', 'user_liked')
     .order('created_at', { ascending: false })
+
+  const STATUS_ORDER: Record<string, number> = { paid: 0, matched: 1, expert_liked: 2, user_liked: 3 }
 
   const likedMe: RequestForExpert[] = (likedMeMatches ?? [])
     .filter((m) => m.requests !== null)
@@ -121,7 +122,9 @@ export async function GET(request: NextRequest) {
         match_id: m.id,
       }
     })
+    .sort((a, b) => (STATUS_ORDER[a.match_status ?? ''] ?? 9) - (STATUS_ORDER[b.match_status ?? ''] ?? 9))
 
+  // Все request_id где уже есть матч — исключить из "по категориям"
   const likedMeRequestIds = likedMe.map((r) => r.id)
 
   // Раздел 2: все активные запросы по категориям эксперта

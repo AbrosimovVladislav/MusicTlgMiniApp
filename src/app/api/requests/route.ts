@@ -81,12 +81,7 @@ export async function GET(request: NextRequest) {
 
       const { data: profiles } = await supabase
         .from('expert_profiles')
-        .select('id, display_first_name, display_last_name, consultation_price, telegram_username')
-        .in('id', expertIds)
-
-      const { data: profilesWithPhoto } = await supabase
-        .from('expert_profiles')
-        .select('id, users!expert_profiles_user_id_fkey(photo_url)')
+        .select('id, display_first_name, display_last_name, consultation_price, telegram_username, users!expert_profiles_user_id_fkey(first_name, last_name, photo_url)')
         .in('id', expertIds)
 
       const profileMap: Record<string, {
@@ -94,15 +89,15 @@ export async function GET(request: NextRequest) {
         display_last_name: string | null
         consultation_price: number | null
         telegram_username: string | null
+        users: { first_name: string; last_name: string | null; photo_url: string | null } | null
       }> = {}
       for (const p of profiles ?? []) {
-        profileMap[p.id] = p
+        profileMap[p.id] = p as typeof profileMap[string]
       }
 
       const photoMap: Record<string, string | null> = {}
-      for (const p of profilesWithPhoto ?? []) {
-        const userRow = p.users as { photo_url: string | null } | null
-        photoMap[p.id] = userRow?.photo_url ?? null
+      for (const [id, p] of Object.entries(profileMap)) {
+        photoMap[id] = p.users?.photo_url ?? null
       }
 
       // Per request: priority paid > matched (within same status: first by created_at, already sorted asc)
@@ -120,7 +115,9 @@ export async function GET(request: NextRequest) {
         if (!prof) continue
 
         const expertName =
-          [prof.display_first_name, prof.display_last_name].filter(Boolean).join(' ') || 'Эксперт'
+          [prof.display_first_name, prof.display_last_name].filter(Boolean).join(' ') ||
+          [prof.users?.first_name, prof.users?.last_name].filter(Boolean).join(' ') ||
+          'Эксперт'
 
         matchedMatchMap[reqId] = {
           match_id: best.id,

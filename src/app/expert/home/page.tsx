@@ -140,13 +140,13 @@ function ExpertHomeContent() {
         </div>
       )}
 
-      {/* Раздел: Меня лайкнули */}
+      {/* Раздел: Мои отклики */}
       {likedMe.length > 0 && (
         <section className="relative mb-8">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-base">❤️</span>
+            <span className="text-base">🎯</span>
             <h2 className="text-white text-sm font-semibold uppercase tracking-wider">
-              Меня лайкнули
+              Мои отклики
             </h2>
             <span
               className="text-xs font-semibold px-2 py-0.5 rounded-full"

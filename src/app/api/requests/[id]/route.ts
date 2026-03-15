@@ -78,17 +78,18 @@ export async function GET(
     if (paidMatch) {
       const { data: profile } = await supabase
         .from('expert_profiles')
-        .select('telegram_username, display_first_name, display_last_name')
+        .select('telegram_username, display_first_name, display_last_name, users!expert_profiles_user_id_fkey(first_name, last_name)')
         .eq('id', paidMatch.expert_id)
         .single()
 
       if (profile) {
+        const userRow = profile.users as { first_name: string; last_name: string | null } | null
         paid_match = {
           match_id: paidMatch.id,
           expert_name:
-            [profile.display_first_name, profile.display_last_name]
-              .filter(Boolean)
-              .join(' ') || 'Эксперт',
+            [profile.display_first_name, profile.display_last_name].filter(Boolean).join(' ') ||
+            [userRow?.first_name, userRow?.last_name].filter(Boolean).join(' ') ||
+            'Эксперт',
           telegram_username: profile.telegram_username,
         }
       }
