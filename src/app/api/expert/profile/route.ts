@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
   const { data: profile, error: profileError } = await supabase
     .from('expert_profiles')
-    .select('id, description, consultation_price, telegram_username, is_visible, created_at')
+    .select('id, description, consultation_price, telegram_username, is_visible, display_first_name, display_last_name, created_at')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -60,6 +60,9 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     profile: {
       ...profile,
+      // display name with fallback to users table
+      display_first_name: profile.display_first_name ?? user.first_name,
+      display_last_name: profile.display_last_name ?? user.last_name,
       user: { first_name: user.first_name, last_name: user.last_name, photo_url: user.photo_url, username: user.username },
       categories: expertCategories?.map((ec) => ec.categories).filter(Boolean) ?? [],
     },
@@ -91,6 +94,9 @@ export async function POST(request: NextRequest) {
   if (typeof initDataRaw !== 'string' || !initDataRaw) {
     return NextResponse.json({ error: 'initDataRaw is required' }, { status: 400 })
   }
+  if (typeof first_name !== 'string' || first_name.trim().length === 0) {
+    return NextResponse.json({ error: 'first_name is required' }, { status: 400 })
+  }
   if (typeof description !== 'string' || description.trim().length < 20) {
     return NextResponse.json({ error: 'Description too short' }, { status: 400 })
   }
@@ -118,7 +124,6 @@ export async function POST(request: NextRequest) {
 
   const supabase = createServiceClient()
 
-  // Get user by telegram_user_id
   const { data: user, error: userError } = await supabase
     .from('users')
     .select('id')
@@ -129,25 +134,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
   }
 
-  // Update first_name / last_name if provided
-  if (typeof first_name === 'string' && first_name.trim()) {
-    await supabase
-      .from('users')
-      .update({
-        first_name: first_name.trim(),
-        last_name: typeof last_name === 'string' ? last_name.trim() : null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', user.id)
-  }
-
-  // Upsert expert_profile
+  // Upsert expert_profile — display name stored in expert_profiles, NOT users table
   const { data: profile, error: profileError } = await supabase
     .from('expert_profiles')
     .upsert(
       {
         user_id: user.id,
-        description: description.trim(),
+        display_first_name: first_name.trim(),
+        display_last_name: typeof last_name === 'string' ? last_name.trim() || null : null,
+        description: (description as string).trim(),
         consultation_price,
         telegram_username: (telegram_username as string).replace(/^@/, '').trim(),
         is_visible: true,
@@ -179,4 +174,73 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ success: true, profile_id: profile.id })
+}
+
+// PATCH — lightweight name-only update for expert profile
+export async function PATCH(request: NextRequest) {
+  const initDataRaw = getInitDataRaw(request)
+  if (!initDataRaw) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  let initData: ReturnType<typeof validateTelegramInitData>
+  try {
+    initData = validateTelegramInitData(initDataRaw)
+  } catch {
+    return NextResponse.json({ error: 'Invalid Telegram initData' }, { status: 401 })
+  }
+
+  const tgUser = initData.user
+  if (!tgUser) {
+    return NextResponse.json({ error: 'No user in initData' }, { status: 400 })
+  }
+
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
+  }
+
+  const { display_first_name, display_last_name } = body as Record<string, unknown>
+
+  if (typeof display_first_name !== 'string' || display_first_name.trim().length === 0) {
+    return NextResponse.json({ error: 'display_first_name is required' }, { status: 400 })
+  }
+
+  const supabase = createServiceClient()
+
+  const { data: user, error: userError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('telegram_user_id', Number(tgUser.id))
+    .single()
+
+  if (userError || !user) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  }
+
+  const { error } = await supabase
+    .from('expert_profiles')
+    .update({
+      display_first_name: display_first_name.trim(),
+      display_last_name: typeof display_last_name === 'string' ? display_last_name.trim() || null : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', user.id)
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({
+    expert_name: {
+      first_name: display_first_name.trim(),
+      last_name: typeof display_last_name === 'string' ? display_last_name.trim() || null : null,
+    },
+  })
 }

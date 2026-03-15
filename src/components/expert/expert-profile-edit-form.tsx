@@ -25,6 +25,8 @@ interface ProfileResponse {
     description: string
     consultation_price: number
     telegram_username: string
+    display_first_name: string
+    display_last_name: string | null
     user: {
       first_name: string
       last_name: string | null
@@ -83,8 +85,8 @@ export function ExpertProfileEditForm({ categories }: Props) {
       const { profile } = data
       setPhotoUrl(profile.user.photo_url)
       setForm({
-        first_name: profile.user.first_name,
-        last_name: profile.user.last_name ?? '',
+        first_name: profile.display_first_name ?? profile.user.first_name,
+        last_name: profile.display_last_name ?? profile.user.last_name ?? '',
         description: profile.description,
         category_ids: profile.categories.map((c) => c.id),
         consultation_price: String(profile.consultation_price),
@@ -134,6 +136,7 @@ export function ExpertProfileEditForm({ categories }: Props) {
 
   function isValid(): boolean {
     return (
+      form.first_name.trim().length > 0 &&
       form.description.trim().length >= 20 &&
       form.category_ids.length >= 1 &&
       Number(form.consultation_price) > 0 &&

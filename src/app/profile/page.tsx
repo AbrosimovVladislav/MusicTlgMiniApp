@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 function ProfileContent() {
   const router = useRouter()
   const initDataRaw = useRawInitData()
-  const { user, currentMode, setCurrentMode, setUser } = useAuthStore()
+  const { user, expertName, currentMode, setCurrentMode, setUser, setExpertName } = useAuthStore()
   const [isUpdating, setIsUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -29,10 +29,17 @@ function ProfileContent() {
   const isUserOnly = role === 'user'
   const isExpertOnly = role === 'expert'
 
-  // Show expert profile edit only when in expert mode
   const showExpertCard = isExpertOnly || (isBoth && currentMode === 'expert')
-  // Show user profile actions when in user mode
-  const showUserActions = isUserOnly || (isBoth && currentMode === 'user')
+  const isExpertMode = isExpertOnly || (isBoth && currentMode === 'expert')
+
+  // Имя зависит от режима
+  const displayFirstName = isExpertMode
+    ? (expertName?.first_name ?? user.first_name)
+    : user.first_name
+  const displayLastName = isExpertMode
+    ? (expertName?.last_name ?? user.last_name)
+    : user.last_name
+  const displayName = [displayFirstName, displayLastName].filter(Boolean).join(' ')
 
   async function upgradeRole(newRole: 'both') {
     if (!initDataRaw) return
@@ -73,8 +80,8 @@ function ProfileContent() {
   }
 
   function startEditName() {
-    setDraftFirstName(user?.first_name ?? '')
-    setDraftLastName(user?.last_name ?? '')
+    setDraftFirstName(displayFirstName)
+    setDraftLastName(displayLastName ?? '')
     setEditingName(true)
   }
 
@@ -83,20 +90,39 @@ function ProfileContent() {
     setIsSavingName(true)
     setError(null)
     try {
-      const res = await fetch('/api/user/profile', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `tma ${initDataRaw}`,
-        },
-        body: JSON.stringify({
-          first_name: draftFirstName.trim(),
-          last_name: draftLastName.trim() || null,
-        }),
-      })
-      if (!res.ok) throw new Error('Ошибка сохранения')
-      const data = await res.json() as { user: typeof user }
-      if (data.user) setUser(data.user)
+      if (isExpertMode) {
+        // Сохраняем имя эксперта в expert_profiles
+        const res = await fetch('/api/expert/profile', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `tma ${initDataRaw}`,
+          },
+          body: JSON.stringify({
+            display_first_name: draftFirstName.trim(),
+            display_last_name: draftLastName.trim() || null,
+          }),
+        })
+        if (!res.ok) throw new Error('Ошибка сохранения')
+        const data = await res.json() as { expert_name: { first_name: string; last_name: string | null } }
+        if (data.expert_name) setExpertName(data.expert_name)
+      } else {
+        // Сохраняем имя пользователя в users
+        const res = await fetch('/api/user/profile', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `tma ${initDataRaw}`,
+          },
+          body: JSON.stringify({
+            first_name: draftFirstName.trim(),
+            last_name: draftLastName.trim() || null,
+          }),
+        })
+        if (!res.ok) throw new Error('Ошибка сохранения')
+        const data = await res.json() as { user: typeof user }
+        if (data.user) setUser(data.user)
+      }
       setEditingName(false)
     } catch {
       setError('Не удалось сохранить имя. Попробуйте снова.')
@@ -104,8 +130,6 @@ function ProfileContent() {
       setIsSavingName(false)
     }
   }
-
-  const displayName = [user.first_name, user.last_name].filter(Boolean).join(' ')
 
   return (
     <main
@@ -131,7 +155,7 @@ function ProfileContent() {
               <Image src={user.photo_url} alt="Фото" fill className="object-cover" unoptimized />
             ) : (
               <span className="text-white text-xl font-bold">
-                {user.first_name?.[0]?.toUpperCase() ?? '?'}
+                {displayFirstName?.[0]?.toUpperCase() ?? '?'}
               </span>
             )}
           </div>
@@ -188,11 +212,11 @@ function ProfileContent() {
 
         {/* Действия */}
         <div className="flex flex-col gap-3">
-          {/* Редактировать имя пользователя */}
-          {showUserActions && !editingName && (
+          {/* Редактировать имя — доступно в обоих режимах */}
+          {!editingName && (
             <ActionCard
               icon="✏️"
-              title="Мой профиль"
+              title={isExpertMode ? 'Имя эксперта' : 'Мой профиль'}
               subtitle="Изменить имя"
               onClick={startEditName}
             />
@@ -204,7 +228,9 @@ function ProfileContent() {
               className="rounded-2xl p-4 flex flex-col gap-3"
               style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
-              <p className="text-xs text-muted font-medium uppercase tracking-wider">Изменить имя</p>
+              <p className="text-xs text-muted font-medium uppercase tracking-wider">
+                {isExpertMode ? 'Имя как эксперт' : 'Изменить имя'}
+              </p>
               <div className="flex flex-col gap-2">
                 <input
                   type="text"

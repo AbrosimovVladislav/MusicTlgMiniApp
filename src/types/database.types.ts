@@ -81,6 +81,8 @@ export type Database = {
           consultation_price: number | null
           created_at: string
           description: string | null
+          display_first_name: string | null
+          display_last_name: string | null
           id: string
           is_visible: boolean
           telegram_username: string | null
@@ -91,6 +93,8 @@ export type Database = {
           consultation_price?: number | null
           created_at?: string
           description?: string | null
+          display_first_name?: string | null
+          display_last_name?: string | null
           id?: string
           is_visible?: boolean
           telegram_username?: string | null
@@ -101,6 +105,8 @@ export type Database = {
           consultation_price?: number | null
           created_at?: string
           description?: string | null
+          display_first_name?: string | null
+          display_last_name?: string | null
           id?: string
           is_visible?: boolean
           telegram_username?: string | null
@@ -111,7 +117,7 @@ export type Database = {
           {
             foreignKeyName: "expert_profiles_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },

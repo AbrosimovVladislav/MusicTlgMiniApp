@@ -6,9 +6,16 @@ import { useAuthStore } from '@/lib/store/auth'
 import { logger } from '@/lib/logger'
 import type { User } from '@/types'
 
+interface ProfileResponse {
+  profile: {
+    display_first_name: string
+    display_last_name: string | null
+  }
+}
+
 export function useAuth() {
   const initDataRaw = useRawInitData()
-  const { user, isLoading, isAuthenticated, setUser, setLoading, reset } = useAuthStore()
+  const { user, isLoading, isAuthenticated, setUser, setExpertName, setLoading, reset } = useAuthStore()
 
   useEffect(() => {
     logger.log('useAuth', 'effect triggered', { initDataRaw: initDataRaw ? `[present, ${initDataRaw.length} chars]` : null })
@@ -42,7 +49,30 @@ export function useAuth() {
 
         const data = (await res.json()) as { user: User }
         logger.log('useAuth', 'auth success', { userId: data.user?.id, role: data.user?.role })
-        if (!cancelled) setUser(data.user)
+        if (cancelled) return
+
+        setUser(data.user)
+
+        // Если пользователь — эксперт, загружаем его отображаемое имя
+        const role = data.user?.role
+        if (role === 'expert' || role === 'both') {
+          try {
+            const profileRes = await fetch('/api/expert/profile', {
+              headers: { Authorization: `tma ${initDataRaw}` },
+            })
+            if (profileRes.ok) {
+              const profileData = (await profileRes.json()) as ProfileResponse
+              if (!cancelled) {
+                setExpertName({
+                  first_name: profileData.profile.display_first_name,
+                  last_name: profileData.profile.display_last_name,
+                })
+              }
+            }
+          } catch {
+            logger.warn('useAuth', 'failed to load expert display name')
+          }
+        }
       } catch (err) {
         logger.error('useAuth', 'fetch threw exception', { error: String(err) })
         if (!cancelled) reset()

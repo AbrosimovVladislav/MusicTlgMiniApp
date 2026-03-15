@@ -386,6 +386,28 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
         )}
       </div>
 
+      {/* Matching actions for published requests */}
+      {request.status === 'published' && (
+        <div className="mt-6 flex flex-col gap-3">
+          <button
+            onClick={() => router.push(`/user/requests/${requestId}/experts`)}
+            className="w-full py-4 rounded-[1000px] font-semibold text-white text-base active:opacity-80"
+            style={{
+              background: 'linear-gradient(162deg, #4400FF 18%, #3901D2 103%)',
+              border: '1px solid rgba(255,255,255,0.02)',
+            }}
+          >
+            Найти эксперта
+          </button>
+          <button
+            onClick={() => router.push(`/user/requests/${requestId}/waiting`)}
+            className="w-full py-3.5 rounded-[1000px] font-medium text-text-secondary text-sm active:opacity-70 border border-border"
+          >
+            Мои лайки
+          </button>
+        </div>
+      )}
+
       {/* Publish draft */}
       {request.status === 'draft' && (
         <div className="mt-auto pt-6">

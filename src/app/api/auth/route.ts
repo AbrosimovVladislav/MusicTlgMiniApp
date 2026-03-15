@@ -62,12 +62,10 @@ export async function POST(request: NextRequest) {
 
   if (existing) {
     console.log('[/api/auth] updating existing user id:', existing.id)
-    // Update existing user
+    // Update existing user — sync only Telegram-controlled fields, NOT first_name/last_name
     const { data: user, error } = await supabase
       .from('users')
       .update({
-        first_name: tgUser.first_name,
-        last_name: tgUser.last_name ?? null,
         username: tgUser.username ?? null,
         photo_url: tgUser.photo_url ?? null,
         updated_at: now,

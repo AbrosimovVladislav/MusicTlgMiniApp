@@ -77,11 +77,11 @@
 
 | #   | Задача                                                      | Статус | Фича-файл                                      |
 | --- | ----------------------------------------------------------- | ------ | ---------------------------------------------- |
-| 4.1 | Список экспертов по категории запроса                       | ⬜      | `[features/matching.md](features/matching.md)` |
-| 4.2 | Карточка эксперта (превью)                                  | ⬜      | `[features/matching.md](features/matching.md)` |
-| 4.3 | Детальная страница эксперта (попап / экран)                 | ⬜      | `[features/matching.md](features/matching.md)` |
-| 4.4 | Лайк эксперта → запись в `matches` со статусом `user_liked` | ⬜      | `[features/matching.md](features/matching.md)` |
-| 4.5 | Экран ожидания — список лайкнутых экспертов со статусами    | ⬜      | `[features/matching.md](features/matching.md)` |
+| 4.1 | Список экспертов по категории запроса                       | ✅      | `[features/matching.md](features/matching.md)` |
+| 4.2 | Карточка эксперта (превью)                                  | ✅      | `[features/matching.md](features/matching.md)` |
+| 4.3 | Детальная страница эксперта (попап / экран)                 | ✅      | `[features/matching.md](features/matching.md)` |
+| 4.4 | Лайк эксперта → запись в `matches` со статусом `user_liked` | ✅      | `[features/matching.md](features/matching.md)` |
+| 4.5 | Экран ожидания — список лайкнутых экспертов со статусами    | ✅      | `[features/matching.md](features/matching.md)` |
 
 
 ---
@@ -103,65 +103,69 @@
 
 ---
 
-## Фаза 6 — Уведомления
-
-> Бот информирует обе стороны о событиях.
-
-
-| #   | Задача                                                     | Статус | Фича-файл                                                |
-| --- | ---------------------------------------------------------- | ------ | -------------------------------------------------------- |
-| 6.1 | `requestWriteAccess()` при онбординге                      | ⬜      | `[features/notifications.md](features/notifications.md)` |
-| 6.2 | Bot webhook — сервер получает события и шлёт `sendMessage` | ⬜      | `[features/notifications.md](features/notifications.md)` |
-| 6.3 | Уведомление: эксперт откликнулся                           | ⬜      | `[features/notifications.md](features/notifications.md)` |
-| 6.4 | Уведомление: взаимный матч                                 | ⬜      | `[features/notifications.md](features/notifications.md)` |
-| 6.5 | Уведомление: оплата прошла / контакты получены             | ⬜      | `[features/notifications.md](features/notifications.md)` |
-
-
----
-
-## Фаза 7 — Оплата и передача контактов
+## Фаза 6 — Оплата и передача контактов
 
 > Финальный шаг — деньги переходят, контакты раскрываются.
 
 
 | #   | Задача                                              | Статус | Фича-файл                                    |
 | --- | --------------------------------------------------- | ------ | -------------------------------------------- |
-| 7.1 | Экран матча — обе стороны видят друг друга          | ⬜      | `[features/payment.md](features/payment.md)` |
-| 7.2 | Оплата через Telegram Stars                         | ⬜      | `[features/payment.md](features/payment.md)` |
-| 7.3 | Моковый экран оплаты через провайдера (заглушка)    | ⬜      | `[features/payment.md](features/payment.md)` |
-| 7.4 | После оплаты → раскрытие Telegram username эксперта | ⬜      | `[features/payment.md](features/payment.md)` |
-| 7.5 | Статус запроса → `in_progress`                      | ⬜      | `[features/payment.md](features/payment.md)` |
+| 6.1 | Экран матча — обе стороны видят друг друга          | ⬜      | `[features/payment.md](features/payment.md)` |
+| 6.2 | Оплата через Telegram Stars                         | ⬜      | `[features/payment.md](features/payment.md)` |
+| 6.3 | Моковый экран оплаты через провайдера (заглушка)    | ⬜      | `[features/payment.md](features/payment.md)` |
+| 6.4 | После оплаты → раскрытие Telegram username эксперта | ⬜      | `[features/payment.md](features/payment.md)` |
+| 6.5 | Статус запроса → `in_progress`                      | ⬜      | `[features/payment.md](features/payment.md)` |
 
 
 ---
 
-## Фаза 8 — Поиск экспертов
+## Фаза 7 — Поиск экспертов
 
 > Отдельный экран для просмотра всех экспертов вне контекста запроса.
 
 
 | #   | Задача                                         | Статус | Фича-файл                                                |
 | --- | ---------------------------------------------- | ------ | -------------------------------------------------------- |
-| 8.1 | Экран поиска / каталог экспертов               | ⬜      | `[features/expert-search.md](features/expert-search.md)` |
-| 8.2 | Фильтрация по категории / подкатегории         | ⬜      | `[features/expert-search.md](features/expert-search.md)` |
-| 8.3 | Сортировка экспертов                           | ⬜      | `[features/expert-search.md](features/expert-search.md)` |
-| 8.4 | Лайк эксперта из каталога → привязка к запросу | ⬜      | `[features/expert-search.md](features/expert-search.md)` |
+| 7.1 | Экран поиска / каталог экспертов               | ⬜      | `[features/expert-search.md](features/expert-search.md)` |
+| 7.2 | Фильтрация по категории / подкатегории         | ⬜      | `[features/expert-search.md](features/expert-search.md)` |
+| 7.3 | Сортировка экспертов                           | ⬜      | `[features/expert-search.md](features/expert-search.md)` |
+| 7.4 | Лайк эксперта из каталога → привязка к запросу | ⬜      | `[features/expert-search.md](features/expert-search.md)` |
 
 
 ---
 
-## Фаза 9 — Полировка и запуск
+## Фаза 8 — Полировка и запуск
 
 > Дизайн, edge cases, тестирование, продакшн.
 
 
 | #   | Задача                                              | Статус | Фича-файл |
 | --- | --------------------------------------------------- | ------ | --------- |
-| 9.1 | Применение дизайн-системы (из `design.md`)          | ⬜      | —         |
-| 9.2 | Telegram тема (dark/light) + safe area              | ⬜      | —         |
-| 9.3 | Error handling, пустые состояния, loading скелетоны | ⬜      | —         |
-| 9.4 | Ручное E2E тестирование полного флоу                | ⬜      | —         |
-| 9.5 | Переменные окружения на Vercel (prod)               | ⬜      | —         |
-| 9.6 | Финальный деплой + проверка в Telegram              | ⬜      | —         |
+| 8.1 | Применение дизайн-системы (из `design.md`)          | ⬜      | —         |
+| 8.2 | Telegram тема (dark/light) + safe area              | ⬜      | —         |
+| 8.3 | Error handling, пустые состояния, loading скелетоны | ⬜      | —         |
+| 8.4 | Ручное E2E тестирование полного флоу                | ⬜      | —         |
+| 8.5 | Переменные окружения на Vercel (prod)               | ⬜      | —         |
+| 8.6 | Финальный деплой + проверка в Telegram              | ⬜      | —         |
+
+
+---
+
+## POST MVP
+
+> Фичи после запуска MVP — не блокируют релиз.
+
+
+### Уведомления
+
+> Бот информирует обе стороны о событиях.
+
+| #    | Задача                                                     | Статус | Фича-файл                                                |
+| ---- | ---------------------------------------------------------- | ------ | -------------------------------------------------------- |
+| N1.1 | `requestWriteAccess()` при онбординге                      | ⬜      | `[features/notifications.md](features/notifications.md)` |
+| N1.2 | Bot webhook — сервер получает события и шлёт `sendMessage` | ⬜      | `[features/notifications.md](features/notifications.md)` |
+| N1.3 | Уведомление: эксперт откликнулся                           | ⬜      | `[features/notifications.md](features/notifications.md)` |
+| N1.4 | Уведомление: взаимный матч                                 | ⬜      | `[features/notifications.md](features/notifications.md)` |
+| N1.5 | Уведомление: оплата прошла / контакты получены             | ⬜      | `[features/notifications.md](features/notifications.md)` |
 
 
