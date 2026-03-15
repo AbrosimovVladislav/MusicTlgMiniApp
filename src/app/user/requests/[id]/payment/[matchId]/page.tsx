@@ -19,7 +19,7 @@ function openTelegramLink(username: string) {
   }
 }
 
-function PaymentContent({ requestId, matchId }: { requestId: string; matchId: string }) {
+function PaymentContent({ requestId, matchId, price }: { requestId: string; matchId: string; price: number | null }) {
   const router = useRouter()
   const initDataRaw = useRawInitData()
 
@@ -161,7 +161,9 @@ function PaymentContent({ requestId, matchId }: { requestId: string; matchId: st
           К оплате
         </p>
         <div className="bg-bg-secondary border border-border rounded-2xl p-5 mb-6 text-center">
-          <p className="text-text font-bold text-4xl">1 500 ₽</p>
+          <p className="text-text font-bold text-4xl">
+            {price != null ? `${price.toLocaleString('ru-RU')} ₽` : 'По договорённости'}
+          </p>
           <p className="text-text-secondary text-sm mt-1">Консультация эксперта</p>
         </div>
 
@@ -223,7 +225,7 @@ function PaymentContent({ requestId, matchId }: { requestId: string; matchId: st
                 Обработка...
               </>
             ) : (
-              'Оплатить 1 500 ₽'
+              {price != null ? `Оплатить ${price.toLocaleString('ru-RU')} ₽` : 'Оплатить'}
             )}
           </button>
         )}
@@ -237,13 +239,16 @@ function PaymentContent({ requestId, matchId }: { requestId: string; matchId: st
 
 interface Props {
   params: Promise<{ id: string; matchId: string }>
+  searchParams: Promise<{ price?: string }>
 }
 
-export default async function PaymentPage({ params }: Props) {
+export default async function PaymentPage({ params, searchParams }: Props) {
   const { id, matchId } = await params
+  const { price: priceParam } = await searchParams
+  const price = priceParam ? Number(priceParam) : null
   return (
     <RouteGuard allowedRole="user">
-      <PaymentContent requestId={id} matchId={matchId} />
+      <PaymentContent requestId={id} matchId={matchId} price={price} />
     </RouteGuard>
   )
 }

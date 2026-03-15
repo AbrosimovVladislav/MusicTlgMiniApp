@@ -609,7 +609,7 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
                       {/* Status badge or like button */}
                       {expert.match_status === 'matched' && expert.match_id ? (
                         <button
-                          onClick={() => router.push(`/user/requests/${requestId}/payment/${expert.match_id}`)}
+                          onClick={() => router.push(`/user/requests/${requestId}/payment/${expert.match_id}${expert.consultation_price ? `?price=${expert.consultation_price}` : ''}`)}
                           className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full text-white"
                           style={{ background: 'linear-gradient(162deg, #4400FF 18%, #3901D2 103%)' }}
                         >
