@@ -151,6 +151,19 @@ export function ProfileSetupForm({ categories }: Props) {
       </div>
 
       <div className="relative flex flex-col flex-1 max-w-md mx-auto w-full">
+        {/* Back on step 1 */}
+        {step === 1 && (
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-text-secondary text-sm mb-6 -ml-1 w-fit active:opacity-70"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Назад
+          </button>
+        )}
+
         {/* Progress bar */}
         <div className="flex gap-1.5 mb-8">
           {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
@@ -293,8 +306,9 @@ function Step2Experience({ form, update }: Step2Props) {
           placeholder="Расскажите о своём опыте, достижениях, с кем работали..."
           rows={7}
           autoFocus
-          className="w-full rounded-2xl px-4 py-4 text-sm text-white placeholder-muted resize-none outline-none transition-all duration-200"
+          className="w-full rounded-2xl px-4 py-4 text-white placeholder-muted resize-none outline-none transition-all duration-200"
           style={{
+            fontSize: '16px',
             background: 'rgba(255,255,255,0.05)',
             border: '1.5px solid',
             borderColor: len >= 20 ? 'rgba(68,0,255,0.5)' : 'rgba(255,255,255,0.08)',
@@ -425,8 +439,9 @@ function Step4Price({ form, update, categories }: Step4Props) {
             onChange={(e) => update('consultation_price', e.target.value)}
             placeholder="1000"
             autoFocus
-            className="w-full pl-8 pr-4 py-4 rounded-2xl text-sm text-white placeholder-muted outline-none transition-all duration-200"
+            className="w-full pl-8 pr-4 py-4 rounded-2xl text-white placeholder-muted outline-none transition-all duration-200"
             style={{
+              fontSize: '16px',
               background: 'rgba(255,255,255,0.05)',
               border: '1.5px solid',
               borderColor:
@@ -451,8 +466,9 @@ function Step4Price({ form, update, categories }: Step4Props) {
             value={form.telegram_username}
             onChange={(e) => update('telegram_username', e.target.value.replace(/^@/, ''))}
             placeholder="username"
-            className="w-full pl-8 pr-4 py-4 rounded-2xl text-sm text-white placeholder-muted outline-none transition-all duration-200"
+            className="w-full pl-8 pr-4 py-4 rounded-2xl text-white placeholder-muted outline-none transition-all duration-200"
             style={{
+              fontSize: '16px',
               background: 'rgba(255,255,255,0.05)',
               border: '1.5px solid',
               borderColor:
@@ -517,8 +533,9 @@ function InputField({ label, value, onChange, placeholder, autoFocus }: InputFie
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoFocus={autoFocus}
-        className="w-full px-4 py-4 rounded-2xl text-sm text-white placeholder-muted outline-none transition-all duration-200"
+        className="w-full px-4 py-4 rounded-2xl text-white placeholder-muted outline-none transition-all duration-200"
         style={{
+          fontSize: '16px',
           background: 'rgba(255,255,255,0.05)',
           border: '1.5px solid',
           borderColor:

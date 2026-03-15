@@ -129,7 +129,8 @@ export function CreateRequestForm() {
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               placeholder="Например: Хочу записать свой первый EP, нужна помощь с сведением 3 треков..."
-              className="w-full h-40 bg-bg-secondary border border-border rounded-2xl px-4 py-3 text-text text-sm placeholder:text-muted resize-none outline-none focus:border-accent-from/50 transition-colors"
+              className="w-full h-40 bg-bg-secondary border border-border rounded-2xl px-4 py-3 text-text placeholder:text-muted resize-none outline-none focus:border-accent-from/50 transition-colors"
+              style={{ fontSize: '16px' }}
               autoFocus
             />
             <div className="flex justify-end mt-2">
@@ -231,7 +232,8 @@ export function CreateRequestForm() {
                 value={form.budget}
                 onChange={(e) => setForm((f) => ({ ...f, budget: e.target.value }))}
                 placeholder="0"
-                className="w-full bg-bg-secondary border border-border rounded-2xl pl-8 pr-4 py-3.5 text-text text-sm placeholder:text-muted outline-none focus:border-accent-from/50 transition-colors"
+                className="w-full bg-bg-secondary border border-border rounded-2xl pl-8 pr-4 py-3.5 text-text placeholder:text-muted outline-none focus:border-accent-from/50 transition-colors"
+                style={{ fontSize: '16px' }}
               />
             </div>
             <p className="text-muted text-xs mt-3">

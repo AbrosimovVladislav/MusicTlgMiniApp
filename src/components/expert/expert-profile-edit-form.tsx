@@ -103,20 +103,19 @@ export function ExpertProfileEditForm({ categories }: Props) {
   }, [loadProfile])
 
   useEffect(() => {
+    const handler = () => router.back()
     try {
-      console.log('[EditForm] backButton: isMounted =', backButton.isMounted, 'isSupported =', backButton.isSupported)
-      if (!backButton.isMounted) {
-        backButton.mount()
-      }
+      if (!backButton.isMounted) backButton.mount()
       backButton.show()
-      const handler = () => router.back()
       backButton.onClick(handler)
-      return () => {
+    } catch (err) {
+      console.error('[EditForm] backButton setup error:', err)
+    }
+    return () => {
+      try {
         backButton.offClick(handler)
         backButton.hide()
-      }
-    } catch (err) {
-      console.error('[EditForm] backButton error:', err)
+      } catch { /* ignore */ }
     }
   }, [router])
 
@@ -164,9 +163,8 @@ export function ExpertProfileEditForm({ categories }: Props) {
         const data = (await res.json()) as { error: string }
         throw new Error(data.error ?? 'Не удалось сохранить профиль')
       }
-      backButton.hide()
+      try { backButton.hide() } catch { /* SDK may not be initialized */ }
       router.back()
-
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Что-то пошло не так')
       setIsPending(false)
@@ -192,11 +190,21 @@ export function ExpertProfileEditForm({ categories }: Props) {
 
       <div className="relative flex flex-col gap-6 max-w-md mx-auto w-full">
         {/* Заголовок */}
-        <div className="mb-2">
-          <p className="text-xs text-muted font-medium uppercase tracking-wider mb-1">
-            Редактирование
-          </p>
-          <h1 className="text-2xl font-semibold text-white leading-tight">Профиль эксперта</h1>
+        <div className="flex items-center gap-4 mb-2">
+          <button
+            onClick={() => router.back()}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-white active:opacity-70 shrink-0"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <div>
+            <p className="text-xs text-muted font-medium uppercase tracking-wider mb-0.5">
+              Редактирование
+            </p>
+            <h1 className="text-xl font-semibold text-white leading-tight">Профиль эксперта</h1>
+          </div>
         </div>
 
         {loadState === 'loading' && <Skeleton />}
@@ -264,8 +272,9 @@ export function ExpertProfileEditForm({ categories }: Props) {
                   onChange={(e) => update('description', e.target.value.slice(0, 500))}
                   placeholder="Расскажите о своём опыте, достижениях, с кем работали..."
                   rows={6}
-                  className="w-full rounded-2xl px-4 py-4 text-sm text-white placeholder-muted resize-none outline-none transition-all duration-200"
+                  className="w-full rounded-2xl px-4 py-4 text-white placeholder-muted resize-none outline-none transition-all duration-200"
                   style={{
+                    fontSize: '16px',
                     background: 'rgba(255,255,255,0.05)',
                     border: '1.5px solid',
                     borderColor:
@@ -339,12 +348,14 @@ export function ExpertProfileEditForm({ categories }: Props) {
                 </span>
                 <input
                   type="number"
+                  inputMode="numeric"
                   min={0}
                   value={form.consultation_price}
                   onChange={(e) => update('consultation_price', e.target.value)}
                   placeholder="1000"
-                  className="w-full pl-8 pr-4 py-4 rounded-2xl text-sm text-white placeholder-muted outline-none transition-all duration-200"
+                  className="w-full pl-8 pr-4 py-4 rounded-2xl text-white placeholder-muted outline-none transition-all duration-200"
                   style={{
+                    fontSize: '16px',
                     background: 'rgba(255,255,255,0.05)',
                     border: '1.5px solid',
                     borderColor:
@@ -367,8 +378,9 @@ export function ExpertProfileEditForm({ categories }: Props) {
                   value={form.telegram_username}
                   onChange={(e) => update('telegram_username', e.target.value.replace(/^@/, ''))}
                   placeholder="username"
-                  className="w-full pl-8 pr-4 py-4 rounded-2xl text-sm text-white placeholder-muted outline-none transition-all duration-200"
+                  className="w-full pl-8 pr-4 py-4 rounded-2xl text-white placeholder-muted outline-none transition-all duration-200"
                   style={{
+                    fontSize: '16px',
                     background: 'rgba(255,255,255,0.05)',
                     border: '1.5px solid',
                     borderColor:
@@ -458,8 +470,9 @@ function InputField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-4 py-4 rounded-2xl text-sm text-white placeholder-muted outline-none transition-all duration-200"
+        className="w-full px-4 py-4 rounded-2xl text-white placeholder-muted outline-none transition-all duration-200"
         style={{
+          fontSize: '16px',
           background: 'rgba(255,255,255,0.05)',
           border: '1.5px solid',
           borderColor: value.trim().length > 0 ? 'rgba(68,0,255,0.5)' : 'rgba(255,255,255,0.08)',

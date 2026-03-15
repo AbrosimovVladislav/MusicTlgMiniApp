@@ -157,7 +157,8 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
               <textarea
                 value={draftDescription}
                 onChange={(e) => setDraftDescription(e.target.value)}
-                className="w-full h-28 bg-transparent text-text text-sm resize-none outline-none"
+                className="w-full h-28 bg-transparent text-text resize-none outline-none"
+                style={{ fontSize: '16px' }}
                 autoFocus
               />
               <div className="flex gap-2 mt-2">
@@ -225,7 +226,8 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
                   value={draftBudget}
                   onChange={(e) => setDraftBudget(e.target.value)}
                   placeholder="0"
-                  className="w-full bg-transparent pl-4 text-text text-sm outline-none"
+                  className="w-full bg-transparent pl-4 text-text outline-none"
+                  style={{ fontSize: '16px' }}
                   autoFocus
                 />
               </div>
