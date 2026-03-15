@@ -1,18 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useRawInitData } from '@tma.js/sdk-react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { useCategories } from '@/hooks/use-categories'
 import type { Request, Category } from '@/types'
+import type { ExpertCardData } from '@/app/api/user/experts/route'
 
 type RequestWithCategories = Request & {
   category: Pick<Category, 'id' | 'name'> | null
   subcategory: Pick<Category, 'id' | 'name'> | null
 }
 
-const STATUS_LABELS: Record<string, string> = {
+const REQUEST_STATUS_LABELS: Record<string, string> = {
   draft: 'Черновик',
   published: 'Опубликован',
   matched: 'Матч найден',
@@ -20,12 +22,33 @@ const STATUS_LABELS: Record<string, string> = {
   completed: 'Завершён',
 }
 
-const STATUS_COLORS: Record<string, string> = {
+const REQUEST_STATUS_COLORS: Record<string, string> = {
   draft: 'text-muted',
   published: 'text-green-400',
   matched: 'text-yellow-400',
   in_progress: 'text-blue-400',
   completed: 'text-muted',
+}
+
+const MATCH_STATUS_LABELS: Record<string, string> = {
+  user_liked: 'Лайкнут',
+  expert_liked: 'Откликнулся!',
+  matched: 'Матч!',
+  paid: 'Оплачено',
+}
+
+const MATCH_STATUS_COLORS: Record<string, string> = {
+  user_liked: 'text-blue-400 bg-blue-400/10',
+  expert_liked: 'text-yellow-400 bg-yellow-400/10',
+  matched: 'text-green-400 bg-green-400/10',
+  paid: 'text-purple-400 bg-purple-400/10',
+}
+
+const MATCH_STATUS_ORDER: Record<string, number> = {
+  matched: 0,
+  paid: 1,
+  expert_liked: 2,
+  user_liked: 3,
 }
 
 interface RequestDetailProps {
@@ -50,6 +73,10 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
   const [draftSubcategoryId, setDraftSubcategoryId] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
+  const [experts, setExperts] = useState<ExpertCardData[]>([])
+  const [expertsLoading, setExpertsLoading] = useState(false)
+  const [liking, setLiking] = useState<string | null>(null)
+
   useEffect(() => {
     if (!initDataRaw) return
 
@@ -66,6 +93,32 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
       })
       .finally(() => setIsLoading(false))
   }, [initDataRaw, requestId])
+
+  const fetchExperts = useCallback(() => {
+    if (!initDataRaw) return
+    setExpertsLoading(true)
+    fetch(`/api/user/experts?request_id=${requestId}`, {
+      headers: { Authorization: `tma ${initDataRaw}` },
+    })
+      .then((r) => r.json())
+      .then((data: { experts?: ExpertCardData[]; error?: string }) => {
+        if (data.error) return
+        const sorted = (data.experts ?? []).slice().sort((a, b) => {
+          const aOrder = a.match_status ? (MATCH_STATUS_ORDER[a.match_status] ?? 4) : 4
+          const bOrder = b.match_status ? (MATCH_STATUS_ORDER[b.match_status] ?? 4) : 4
+          return aOrder - bOrder
+        })
+        setExperts(sorted)
+      })
+      .catch(() => {})
+      .finally(() => setExpertsLoading(false))
+  }, [initDataRaw, requestId])
+
+  useEffect(() => {
+    if (request?.status === 'published') {
+      fetchExperts()
+    }
+  }, [request?.status, fetchExperts])
 
   async function saveField(updates: Record<string, unknown>) {
     if (!initDataRaw) return
@@ -109,6 +162,40 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
     setEditingCategory(false)
   }
 
+  async function handleLike(expertId: string) {
+    if (!initDataRaw || liking) return
+    setLiking(expertId)
+    try {
+      const res = await fetch('/api/user/like', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `tma ${initDataRaw}`,
+        },
+        body: JSON.stringify({ expert_id: expertId, request_id: requestId }),
+      })
+      const data = await res.json() as { match?: { id: string; status: string }; result?: string; error?: string }
+      if (data.error) return
+
+      setExperts((prev) => {
+        const updated = prev.map((e) =>
+          e.id === expertId
+            ? { ...e, match_status: (data.match?.status ?? 'user_liked') as ExpertCardData['match_status'], match_id: data.match?.id ?? null }
+            : e
+        )
+        return updated.slice().sort((a, b) => {
+          const aOrder = a.match_status ? (MATCH_STATUS_ORDER[a.match_status] ?? 4) : 4
+          const bOrder = b.match_status ? (MATCH_STATUS_ORDER[b.match_status] ?? 4) : 4
+          return aOrder - bOrder
+        })
+      })
+    } catch {
+      // silent
+    } finally {
+      setLiking(null)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-bg px-5 pt-6 pb-8">
@@ -130,8 +217,8 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
     )
   }
 
-  const statusLabel = STATUS_LABELS[request.status] ?? request.status
-  const statusColor = STATUS_COLORS[request.status] ?? 'text-muted'
+  const statusLabel = REQUEST_STATUS_LABELS[request.status] ?? request.status
+  const statusColor = REQUEST_STATUS_COLORS[request.status] ?? 'text-muted'
   const isExpired = request.expires_at ? new Date(request.expires_at) < new Date() : false
   const canEdit = request.status === 'draft' || request.status === 'published'
   const draftSubcats = draftCategoryId ? subCategories(draftCategoryId) : []
@@ -386,28 +473,6 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
         )}
       </div>
 
-      {/* Matching actions for published requests */}
-      {request.status === 'published' && (
-        <div className="mt-6 flex flex-col gap-3">
-          <button
-            onClick={() => router.push(`/user/requests/${requestId}/experts`)}
-            className="w-full py-4 rounded-[1000px] font-semibold text-white text-base active:opacity-80"
-            style={{
-              background: 'linear-gradient(162deg, #4400FF 18%, #3901D2 103%)',
-              border: '1px solid rgba(255,255,255,0.02)',
-            }}
-          >
-            Найти эксперта
-          </button>
-          <button
-            onClick={() => router.push(`/user/requests/${requestId}/waiting`)}
-            className="w-full py-3.5 rounded-[1000px] font-medium text-text-secondary text-sm active:opacity-70 border border-border"
-          >
-            Мои лайки
-          </button>
-        </div>
-      )}
-
       {/* Publish draft */}
       {request.status === 'draft' && (
         <div className="mt-auto pt-6">
@@ -425,6 +490,141 @@ export function RequestDetail({ requestId }: RequestDetailProps) {
           >
             {isSaving ? 'Публикация...' : 'Опубликовать'}
           </button>
+        </div>
+      )}
+
+      {/* Experts list — inline for published requests */}
+      {request.status === 'published' && (
+        <div className="mt-8">
+          <h2 className="text-text font-semibold text-base mb-4">Подходящие эксперты</h2>
+
+          {expertsLoading && (
+            <div className="flex flex-col gap-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-28 rounded-2xl bg-bg-secondary animate-pulse" />
+              ))}
+            </div>
+          )}
+
+          {!expertsLoading && experts.length === 0 && (
+            <div className="flex flex-col items-center text-center py-10">
+              <div className="text-4xl mb-3">🎵</div>
+              <p className="text-text-secondary text-sm">Пока нет экспертов по вашей категории</p>
+            </div>
+          )}
+
+          {!expertsLoading && experts.length > 0 && (
+            <div className="flex flex-col gap-3">
+              {experts.map((expert) => {
+                const fullName = [expert.user.first_name, expert.user.last_name].filter(Boolean).join(' ')
+                return (
+                  <div key={expert.id} className="bg-bg-secondary border border-border rounded-2xl p-4">
+                    <div className="flex items-start gap-3 mb-3">
+                      {/* Avatar */}
+                      <button
+                        onClick={() => router.push(`/user/experts/${expert.id}?request_id=${requestId}`)}
+                        className="shrink-0"
+                      >
+                        {expert.user.photo_url ? (
+                          <Image
+                            src={expert.user.photo_url}
+                            alt={expert.user.first_name}
+                            width={48}
+                            height={48}
+                            className="rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-lg font-semibold text-text">
+                            {expert.user.first_name.charAt(0)}
+                          </div>
+                        )}
+                      </button>
+
+                      {/* Name + categories */}
+                      <div className="flex-1 min-w-0">
+                        <button
+                          onClick={() => router.push(`/user/experts/${expert.id}?request_id=${requestId}`)}
+                          className="text-left w-full"
+                        >
+                          <p className="text-text font-semibold text-sm">{fullName}</p>
+                        </button>
+                        {expert.categories.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {expert.categories.slice(0, 2).map((cat) => (
+                              <span key={cat.id} className="text-xs text-muted bg-white/5 px-2 py-0.5 rounded-full">
+                                {cat.name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Status badge or like button */}
+                      {expert.match_status === 'expert_liked' ? (
+                        <div className="shrink-0 flex flex-col items-end gap-1.5">
+                          <span className={cn('text-xs font-medium px-2 py-1 rounded-full', MATCH_STATUS_COLORS[expert.match_status])}>
+                            {MATCH_STATUS_LABELS[expert.match_status]}
+                          </span>
+                          <button
+                            onClick={() => handleLike(expert.id)}
+                            disabled={liking === expert.id}
+                            className="text-xs font-semibold px-3 py-1 rounded-full text-white active:opacity-70 disabled:opacity-60"
+                            style={{ background: 'linear-gradient(162deg, #4400FF 18%, #3901D2 103%)' }}
+                          >
+                            {liking === expert.id ? '...' : 'Лайкнуть ♥'}
+                          </button>
+                        </div>
+                      ) : expert.match_status ? (
+                        <span className={cn('shrink-0 text-xs font-medium px-2 py-1 rounded-full', MATCH_STATUS_COLORS[expert.match_status])}>
+                          {MATCH_STATUS_LABELS[expert.match_status]}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleLike(expert.id)}
+                          disabled={liking === expert.id}
+                          className="shrink-0 w-10 h-10 flex items-center justify-center rounded-full active:scale-90 transition-transform disabled:opacity-60"
+                          style={{ background: 'linear-gradient(162deg, #4400FF 18%, #3901D2 103%)' }}
+                        >
+                          {liking === expert.id ? (
+                            <svg className="animate-spin w-4 h-4 text-white" viewBox="0 0 24 24" fill="none">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                          ) : (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Description preview */}
+                    {expert.description && (
+                      <p className="text-text-secondary text-xs leading-relaxed line-clamp-2 mb-3">
+                        {expert.description}
+                      </p>
+                    )}
+
+                    {/* Price + details */}
+                    <div className="flex items-center justify-between">
+                      {expert.consultation_price ? (
+                        <span className="text-text text-sm font-semibold">{expert.consultation_price} ₽</span>
+                      ) : (
+                        <span className="text-muted text-sm">Цена по запросу</span>
+                      )}
+                      <button
+                        onClick={() => router.push(`/user/experts/${expert.id}?request_id=${requestId}`)}
+                        className="text-xs text-accent-from font-medium"
+                      >
+                        Подробнее →
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
