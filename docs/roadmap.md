@@ -61,11 +61,11 @@
 
 | #   | Задача                                               | Статус | Фича-файл                                      |
 | --- | ---------------------------------------------------- | ------ | ---------------------------------------------- |
-| 3.1 | Home пользователя — список запросов + CTA            | ⬜      | `[features/requests.md](features/requests.md)` |
-| 3.2 | Многошаговая форма создания запроса (4 шага)         | ⬜      | `[features/requests.md](features/requests.md)` |
-| 3.3 | Публикация запроса → статус `published`              | ⬜      | `[features/requests.md](features/requests.md)` |
-| 3.4 | Страница деталей запроса (статус, редактирование)    | ⬜      | `[features/requests.md](features/requests.md)` |
-| 3.5 | Авто-деактивация через 90 дней (`is_active = false`) | ⬜      | `[features/requests.md](features/requests.md)` |
+| 3.1 | Home пользователя — список запросов + CTA            | ✅      | `[features/requests.md](features/requests.md)` |
+| 3.2 | Многошаговая форма создания запроса (4 шага)         | ✅      | `[features/requests.md](features/requests.md)` |
+| 3.3 | Публикация запроса → статус `published`              | ✅      | `[features/requests.md](features/requests.md)` |
+| 3.4 | Страница деталей запроса (статус, редактирование)    | ✅      | `[features/requests.md](features/requests.md)` |
+| 3.5 | Авто-деактивация через 90 дней (`is_active = false`) | ✅      | `[features/requests.md](features/requests.md)` |
 
 
 ---
