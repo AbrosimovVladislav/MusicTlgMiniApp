@@ -217,34 +217,36 @@ const TrackCard = (props: any) => { ... }
 **Dark / Immersive / Musical** — вдохновение: Spotify, Apple Music, музыкальные плееры.
 
 - Тёмный фон с глубиной (многослойность)
-- Акцентный цвет — яркий, "звуковой" (зелёный, фиолетовый, электрик)
-- Обложки треков как главный визуальный элемент
+- Акцентный цвет — сине-фиолетовый градиент (`#4400FF → #3901D2`)
+- Фото артистов как главный визуальный элемент
 - Плавные переходы, blur-эффекты, градиенты
 
 ### Typography Rules
 
+- **Шрифт**: **Poppins** (SemiBold 600, Medium 500, Regular 400) — загружать через `next/font/google`
 - **Никогда**: Inter, Roboto, Arial как основной шрифт
-- **Предпочтительно**: Геометрические гротески или выразительные display-шрифты
-- Загружать через `next/font`
-- Примеры: `Syne` + `DM Sans`, `Space Grotesk` + `Inter` (только как body), `Clash Display` + `Instrument Sans`
 
 ### Color Tokens (globals.css)
+
+Детальное описание — [`docs/design.md`](docs/design.md).
 
 ```css
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #0a0a0f;
-  --color-surface: #13131a;
-  --color-surface-elevated: #1c1c26;
-  --color-border: #2a2a3a;
-  --color-accent: #7c3aed;        /* фиолетовый — настроить под проект */
-  --color-accent-glow: #7c3aed40;
-  --color-text-primary: #f0f0f5;
-  --color-text-muted: #7070a0;
+  --color-bg: #0b002a;
+  --color-bg-secondary: #171039;
 
-  --font-display: "Syne", sans-serif;
-  --font-body: "DM Sans", sans-serif;
+  --color-accent-from: #4400ff;
+  --color-accent-to: #3901d2;
+
+  --color-text: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.6);
+  --color-muted: #a092b2;
+
+  --color-border: rgba(255, 255, 255, 0.08);
+
+  --font-sans: "Poppins", sans-serif;
 }
 ```
 
