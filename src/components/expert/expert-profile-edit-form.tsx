@@ -62,18 +62,23 @@ export function ExpertProfileEditForm({ categories }: Props) {
   }, {})
 
   const loadProfile = useCallback(async () => {
-    if (!initDataRaw) return
+    if (!initDataRaw) {
+      console.error('[EditForm] loadProfile: no initDataRaw')
+      return
+    }
     setLoadState('loading')
     setError(null)
     try {
+      console.log('[EditForm] loadProfile: fetching profile')
       const res = await fetch('/api/expert/profile', {
         headers: { Authorization: `tma ${initDataRaw}` },
       })
+      console.log('[EditForm] loadProfile: status', res.status)
       if (res.status === 404) {
         router.replace('/expert/profile/setup')
         return
       }
-      if (!res.ok) throw new Error('Не удалось загрузить профиль')
+      if (!res.ok) throw new Error(`Не удалось загрузить профиль (${res.status})`)
       const data = (await res.json()) as ProfileResponse
       const { profile } = data
       setPhotoUrl(profile.user.photo_url)
@@ -86,7 +91,9 @@ export function ExpertProfileEditForm({ categories }: Props) {
         telegram_username: profile.telegram_username,
       })
       setLoadState('ready')
-    } catch {
+      console.log('[EditForm] loadProfile: ready')
+    } catch (err) {
+      console.error('[EditForm] loadProfile error:', err)
       setLoadState('error')
     }
   }, [initDataRaw, router])
@@ -96,12 +103,20 @@ export function ExpertProfileEditForm({ categories }: Props) {
   }, [loadProfile])
 
   useEffect(() => {
-    backButton.show()
-    const handler = () => router.back()
-    backButton.onClick(handler)
-    return () => {
-      backButton.offClick(handler)
-      backButton.hide()
+    try {
+      console.log('[EditForm] backButton: isMounted =', backButton.isMounted, 'isSupported =', backButton.isSupported)
+      if (!backButton.isMounted) {
+        backButton.mount()
+      }
+      backButton.show()
+      const handler = () => router.back()
+      backButton.onClick(handler)
+      return () => {
+        backButton.offClick(handler)
+        backButton.hide()
+      }
+    } catch (err) {
+      console.error('[EditForm] backButton error:', err)
     }
   }, [router])
 
