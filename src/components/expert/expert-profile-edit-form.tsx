@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { useRawInitData, useBackButton } from '@tma.js/sdk-react'
+import { useRawInitData, backButton } from '@tma.js/sdk-react'
 import { cn } from '@/lib/utils'
 import type { Category } from '@/types'
 
@@ -38,8 +38,6 @@ interface ProfileResponse {
 export function ExpertProfileEditForm({ categories }: Props) {
   const router = useRouter()
   const initDataRaw = useRawInitData()
-  const backButton = useBackButton()
-
   const [loadState, setLoadState] = useState<'loading' | 'error' | 'ready'>('loading')
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
@@ -100,12 +98,12 @@ export function ExpertProfileEditForm({ categories }: Props) {
   useEffect(() => {
     backButton.show()
     const handler = () => router.back()
-    backButton.on('click', handler)
+    backButton.onClick(handler)
     return () => {
-      backButton.off('click', handler)
+      backButton.offClick(handler)
       backButton.hide()
     }
-  }, [backButton, router])
+  }, [router])
 
   function update<K extends keyof EditFormData>(key: K, value: EditFormData[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -153,6 +151,7 @@ export function ExpertProfileEditForm({ categories }: Props) {
       }
       backButton.hide()
       router.back()
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Что-то пошло не так')
       setIsPending(false)
@@ -208,7 +207,7 @@ export function ExpertProfileEditForm({ categories }: Props) {
             <Section>
               <div className="flex items-center gap-4 mb-5">
                 <div
-                  className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
+                  className="relative w-16 h-16 rounded-full overflow-hidden shrink-0 flex items-center justify-center"
                   style={{
                     background: 'linear-gradient(135deg, #4400ff, #3901d2)',
                     border: '2px solid rgba(68,0,255,0.4)',
