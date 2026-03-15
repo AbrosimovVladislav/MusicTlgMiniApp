@@ -73,8 +73,8 @@ function ProfileContent() {
   }
 
   function startEditName() {
-    setDraftFirstName(user.first_name ?? '')
-    setDraftLastName(user.last_name ?? '')
+    setDraftFirstName(user?.first_name ?? '')
+    setDraftLastName(user?.last_name ?? '')
     setEditingName(true)
   }
 
