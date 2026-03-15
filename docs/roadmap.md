@@ -13,11 +13,11 @@
 
 | #   | Задача                                  | Статус | Фича-файл                                      |
 | --- | --------------------------------------- | ------ | ---------------------------------------------- |
-| 0.1 | Настройка Supabase проекта              | ⬜      | —                                              |
-| 0.2 | Схема БД — таблицы, связи, RLS          | ⬜      | `[features/database.md](features/database.md)` |
-| 0.3 | Генерация TypeScript типов из схемы     | ⬜      | —                                              |
-| 0.4 | Supabase client setup (`lib/supabase/`) | ⬜      | —                                              |
-| 0.5 | Структура проекта — папки, конвенции    | ⬜      | —                                              |
+| 0.1 | Настройка Supabase проекта              | ✅      | —                                              |
+| 0.2 | Схема БД — таблицы, связи, RLS          | ✅      | `[features/database.md](features/database.md)` |
+| 0.3 | Генерация TypeScript типов из схемы     | ✅      | —                                              |
+| 0.4 | Supabase client setup (`lib/supabase/`) | ✅      | —                                              |
+| 0.5 | Структура проекта — папки, конвенции    | ✅      | —                                              |
 
 
 ---
@@ -29,11 +29,11 @@
 
 | #   | Задача                                                        | Статус | Фича-файл                                          |
 | --- | ------------------------------------------------------------- | ------ | -------------------------------------------------- |
-| 1.1 | Валидация Telegram `initData` на сервере                      | ⬜      | `[features/auth.md](features/auth.md)`             |
-| 1.2 | Создание / обновление пользователя в БД по `telegram_user_id` | ⬜      | `[features/auth.md](features/auth.md)`             |
-| 1.3 | Сплэш-экраны (1–2)                                            | ⬜      | `[features/onboarding.md](features/onboarding.md)` |
-| 1.4 | Экран выбора роли (User / Expert)                             | ⬜      | `[features/onboarding.md](features/onboarding.md)` |
-| 1.5 | Роут-гард — редирект по роли после онбординга                 | ⬜      | `[features/auth.md](features/auth.md)`             |
+| 1.1 | Валидация Telegram `initData` на сервере                      | ✅      | `[features/auth.md](features/auth.md)`             |
+| 1.2 | Создание / обновление пользователя в БД по `telegram_user_id` | ✅      | `[features/auth.md](features/auth.md)`             |
+| 1.3 | Сплэш-экраны (1–2)                                            | ✅      | `[features/onboarding.md](features/onboarding.md)` |
+| 1.4 | Экран выбора роли (User / Expert)                             | ✅      | `[features/onboarding.md](features/onboarding.md)` |
+| 1.5 | Роут-гард — редирект по роли после онбординга                 | ✅      | `[features/auth.md](features/auth.md)`             |
 
 
 ---

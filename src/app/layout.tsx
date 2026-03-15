@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
-import { TelegramProvider } from "@/components/shared/telegram-provider";
+import { TelegramProviderLoader } from "@/components/shared/telegram-provider-loader";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={poppins.variable}>
       <body className="bg-bg text-text antialiased">
-        <TelegramProvider>{children}</TelegramProvider>
+        <TelegramProviderLoader>{children}</TelegramProviderLoader>
       </body>
     </html>
   );
